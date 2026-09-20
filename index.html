@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>수남매 부자되기</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #e5e7eb; 
+            touch-action: pan-y; /* Optimize for mobile touch */
+        }
+        .app-container { 
+            height: 100dvh; 
+            max-height: 100dvh; 
+        }
+        /* Mobile-first layout simulating app on desktop */
+        @media (min-width: 640px) {
+            .app-container { 
+                height: 850px; 
+                max-height: 850px; 
+                border-radius: 1.5rem; 
+                margin-top: 2rem; 
+                margin-bottom: 2rem; 
+            }
+        }
+        
+        /* Hide scrollbar for clean UI */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app" class="app-container max-w-md mx-auto bg-gray-50 flex flex-col relative shadow-2xl overflow-hidden">
+        <!-- Initial Loading Screen -->
+        <div id="loadingScreen" class="flex-1 flex flex-col items-center justify-center bg-indigo-600 text-white z-50 absolute inset-0">
+            <div class="loader mb-4"></div>
+            <h2 class="text-xl font-bold">클라우드 동기화 중...</h2>
+            <p class="text-indigo-200 text-sm mt-2">가족 데이터를 불러오고 있습니다</p>
+        </div>
+        <!-- Screens will be injected here via JavaScript -->
+        <div id="screenContent" class="w-full h-full flex flex-col hidden"></div>
+    </div>
+    
+    <!-- Alert Modal (Replaces default alert()) -->
+    <div id="alertModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="alertBox">
+            <h3 class="text-xl font-bold text-gray-900 mb-2" id="alertTitle">알림</h3>
+            <p class="text-gray-600 mb-6 text-sm leading-relaxed" id="alertMessage">메시지 내용</p>
+            <button onclick="closeModal('alertModal')" class="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md">확인</button>
+        </div>
+    </div>
+    
+    <!-- Input Modal (For requesting money) -->
+    <div id="inputModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="inputBox">
+            <h3 class="text-xl font-bold text-gray-900 mb-2" id="inputTitle">용돈 신청</h3>
+            <p class="text-gray-500 text-sm mb-4" id="inputMessage">신청할 금액을 입력해주세요.</p>
+            <input type="number" id="inputValue" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="예: 1000">
+            <div class="flex gap-3">
+                <button onclick="closeModal('inputModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button id="inputConfirmBtn" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                    <span id="inputConfirmText">신청하기</span>
+                    <i id="inputConfirmLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Point Request Modal (For students to request points + photo) -->
+    <div id="pointReqModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95 my-auto" id="pointReqBox">
+            <h3 class="text-xl font-bold text-gray-900 mb-1">독서 / 상점 신청</h3>
+            <p class="text-gray-500 text-xs mb-4">내용과 인증샷을 올려 부모님께 확인받으세요.</p>
+            
+            <input type="hidden" id="reqLearnerId">
+            
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">어떤 활동인가요?</label>
+                    <select id="reqItem" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium">
+                        <option value="eng">영어 도서 (+2P)</option>
+                        <option value="kor">한글 도서 (+1P)</option>
+                        <option value="custom">기타 활동 (부모님 판단)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">상세 내용 (책 제목 등)</label>
+                    <input type="text" id="reqDetail" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium" placeholder="무엇을 읽었/했나요?">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5 flex justify-between items-center">
+                        <span>인증샷 첨부 (선택)</span>
+                    </label>
+                    <!-- Image Input -->
+                    <div class="relative w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-200 transition" id="photoUploadContainer" onclick="document.getElementById('reqImage').click()">
+                        <div id="photoPlaceholder" class="text-center">
+                            <i class="fa-solid fa-camera text-2xl text-gray-400 mb-1"></i>
+                            <p class="text-xs text-gray-500 font-bold">터치하여 사진 촬영/선택</p>
+                        </div>
+                        <img id="photoPreview" class="absolute inset-0 w-full h-full object-cover hidden">
+                    </div>
+                    <input type="file" id="reqImage" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeModal('pointReqModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button id="pointReqSubmitBtn" onclick="submitPointRequest()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                    <span id="pointReqSubmitText">신청하기</span>
+                    <i id="pointReqSubmitLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal (Full size) -->
+    <div id="imageViewerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 hidden opacity-0 transition-opacity duration-300">
+        <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
+            <div class="absolute top-4 right-4 flex gap-4">
+                <button id="downloadImageBtn" class="text-white text-2xl opacity-70 hover:opacity-100 p-2"><i class="fa-solid fa-download"></i></button>
+                <button onclick="closeModal('imageViewerModal')" class="text-white text-3xl opacity-70 hover:opacity-100 p-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <img id="fullImageViewer" src="" class="max-w-full max-h-full object-contain rounded-lg">
+        </div>
+    </div>
+
+    <!-- Password Modal (For Admin Access) -->
+    <div id="passwordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="passwordBox">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">관리자 인증</h3>
+            <p class="text-gray-500 text-sm mb-4" id="passwordMessage">비밀번호를 입력해주세요. <br><span class="text-xs">(초기 비밀번호: 0000)</span></p>
+            <input type="password" id="adminPasswordInput" onkeydown="if(event.key === 'Enter') verifyAdminPassword()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold tracking-widest text-center text-xl" placeholder="****" inputmode="numeric" pattern="[0-9]*">
+            <div class="flex gap-3">
+                <button onclick="closeModal('passwordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button onclick="verifyAdminPassword()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md">확인</button>
+            </div>
+            <div class="mt-4 text-center">
+                <button onclick="openFindPassword()" class="text-sm text-gray-400 hover:text-indigo-600 underline underline-offset-2 font-medium">비밀번호를 잊으셨나요?</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Find Password Modal -->
+    <div id="findPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="findPasswordBox">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">비밀번호 찾기</h3>
+            <p class="text-gray-500 text-sm mb-4" id="findPasswordMessage">등록된 이메일을 입력하시면 임시 비밀번호를 발급해 드립니다.<br><span class="text-xs text-indigo-500 font-bold">(데모용 가입 이메일: parent@email.com)</span></p>
+            <input type="email" id="recoveryEmailInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium" placeholder="이메일 주소 입력">
+            <div class="flex gap-3">
+                <button onclick="closeModal('findPasswordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button onclick="sendPasswordReset()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                    <span id="resetPwText">메일 전송</span>
+                    <i id="resetPwLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="changePasswordBox">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">비밀번호 변경</h3>
+            <p class="text-gray-500 text-sm mb-4">새로운 관리자 비밀번호를 설정합니다.</p>
+            <div class="space-y-3 mb-6">
+                <input type="password" id="currentPasswordInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="현재 비밀번호">
+                <input type="password" id="newPasswordInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="새 비밀번호 (4자리 이상)">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeModal('changePasswordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button onclick="changeAdminPassword()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                    <span id="changePwText">변경하기</span>
+                    <i id="changePwLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs and Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 이 부분을 회원님만의 앱 이름으로 변경합니다.
+        const appId = 'su-family-app';
+        
+        // ----------------------------------------------------
+        // 아래 부분을 Firebase에서 복사한 회원님의 설정값으로 바꿔주세요!
+        // ----------------------------------------------------
+        const firebaseConfig = {
+            apiKey: "회원님의_API_KEY",
+            authDomain: "회원님의_PROJECT_ID.firebaseapp.com",
+            projectId: "회원님의_PROJECT_ID",
+            storageBucket: "회원님의_PROJECT_ID.appspot.com",
+            messagingSenderId: "회원님의_SENDER_ID",
+            appId: "회원님의_APP_ID"
+        };
+        // ----------------------------------------------------
+        
+        // Define Base Collection Rule 1
+        const basePath = `artifacts/${appId}/public/data`;
+        
+        let app, db, auth;
+        
+        // Global State (Replicated from Firebase real-time)
+        window.state = {
+            admin: { password: '0000', email: 'parent@email.com' },
+            learners: {
+                suweol: { id: 'suweol', name: '이수월', points: { englishBooks: 0, koreanBooks: 0, customPoints: 0, totalPoints: 0 }, coupons: { balance: 0, totalIssued: 0 } },
+                suna: { id: 'suna', name: '이수나', points: { englishBooks: 0, koreanBooks: 0, customPoints: 0, totalPoints: 0 }, coupons: { balance: 0, totalIssued: 0 } }
+            },
+            history: [],
+            requests: [],
+            pointRequests: []
+        };
+
+        window.currentScreen = 'home';
+        window.currentParams = {};
+        window.currentUploadedImageBase64 = null;
+        let currentAlertCallback = null;
+        let isFirebaseLoaded = false;
+
+        async function initFirebase() {
+            // 1. Firebase 설정값이 입력되지 않은 초기 상태(데모)인 경우 임시 메모리 모드로 실행
+            if (!firebaseConfig || firebaseConfig.apiKey === "회원님의_API_KEY") {
+                console.warn("Firebase 설정이 입력되지 않아 임시 로컬 메모리 모드로 실행됩니다.");
+                showApp();
+                return;
+            }
+            
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            try {
+                // 2. 익명 로그인으로 앱 사용 권한 획득
+                await signInAnonymously(auth);
+                
+                await bootstrapData();
+                setupRealtimeListeners();
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                // 3. 네트워크 에러 등으로 실패할 경우 앱이 멈추지 않도록 로컬 모드로 전환
+                showApp();
+                setTimeout(() => {
+                    showModal("임시 모드 알림", "클라우드 서버에 연결할 수 없어 임시 모드로 실행됩니다.<br><span class='text-xs text-rose-500'>(새로고침 시 데이터가 초기화됩니다)</span>");
+                }, 500);
+            }
+        }
+
+        async function bootstrapData() {
+            if (!auth.currentUser) return;
+            
+            // Check Admin Config
+            const adminRef = doc(db, `${basePath}/config/admin`);
+            const adminSnap = await getDoc(adminRef);
+            if (!adminSnap.exists()) {
+                await setDoc(adminRef, window.state.admin);
+            } else {
+                window.state.admin = adminSnap.data();
+            }
+
+            // Check Learners
+            const learnersRef = collection(db, `${basePath}/learners`);
+            const learnersSnap = await getDocs(learnersRef);
+            if (learnersSnap.empty) {
+                await setDoc(doc(db, `${basePath}/learners/suweol`), window.state.learners.suweol);
+                await setDoc(doc(db, `${basePath}/learners/suna`), window.state.learners.suna);
+            }
+        }
+
+        function setupRealtimeListeners() {
+            // Listen Admin Config
+            onSnapshot(doc(db, `${basePath}/config/admin`), (docSnap) => {
+                if(docSnap.exists()) window.state.admin = docSnap.data();
+            }, (error) => console.error(error));
+
+            // Listen Learners
+            onSnapshot(collection(db, `${basePath}/learners`), (snap) => {
+                snap.docs.forEach(docSnap => {
+                    window.state.learners[docSnap.id] = docSnap.data();
+                });
+                if (!isFirebaseLoaded) showApp();
+                else triggerRender();
+            }, (error) => console.error(error));
+
+            // Listen History (Rule 2: Fetch all, sort locally)
+            onSnapshot(collection(db, `${basePath}/history`), (snap) => {
+                window.state.history = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
+                // Sort descending by timestamp/id
+                window.state.history.sort((a, b) => b.id.localeCompare(a.id));
+                triggerRender();
+            }, (error) => console.error(error));
+
+            // Listen Money Requests
+            onSnapshot(collection(db, `${basePath}/moneyRequests`), (snap) => {
+                window.state.requests = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
+                window.state.requests.sort((a, b) => b.id.localeCompare(a.id));
+                triggerRender();
+            }, (error) => console.error(error));
+
+            // Listen Point Requests
+            onSnapshot(collection(db, `${basePath}/pointRequests`), (snap) => {
+                window.state.pointRequests = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
+                window.state.pointRequests.sort((a, b) => b.id.localeCompare(a.id));
+                triggerRender();
+            }, (error) => console.error(error));
+        }
+
+        function showApp() {
+            isFirebaseLoaded = true;
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('screenContent').classList.remove('hidden');
+            window.navigate('home');
+        }
+
+        function triggerRender() {
+            if (!isFirebaseLoaded) return;
+            const appDiv = document.getElementById('screenContent');
+            const scrollPos = appDiv.firstElementChild ? appDiv.firstElementChild.scrollTop : 0;
+            
+            let html = '';
+            const s = window.currentScreen;
+            const p = window.currentParams;
+            
+            if (s === 'home') html = getHomeHTML();
+            else if (s === 'admin') html = getAdminHTML();
+            else if (s === 'adminHistory') html = getAdminHistoryHTML(p.learnerId);
+            else if (s === 'addPoint') html = getAddPointHTML(p.learnerId);
+            else if (s === 'learner') html = getLearnerHTML(p.learnerId);
+            
+            appDiv.innerHTML = html;
+            
+            // Restore scroll position
+            if(appDiv.firstElementChild && scrollPos > 0) {
+                appDiv.firstElementChild.scrollTop = scrollPos;
+            }
+        }
+
+        window.showModal = function(title, message, callback = null) {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerHTML = message;
+            currentAlertCallback = callback;
+            
+            const modal = document.getElementById('alertModal');
+            const box = document.getElementById('alertBox');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        };
+
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            const box = modal.querySelector('div.bg-white, div.relative');
+            
+            modal.classList.add('opacity-0');
+            if (box && box.classList.contains('scale-100')) {
+                box.classList.remove('scale-100');
+                box.classList.add('scale-95');
+            }
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (modalId === 'alertModal' && currentAlertCallback) {
+                    currentAlertCallback();
+                    currentAlertCallback = null;
+                }
+            }, 300);
+        };
+
+        window.openImageViewer = function(src) {
+            const modal = document.getElementById('imageViewerModal');
+            document.getElementById('fullImageViewer').src = src;
+            
+            // Setup Download button
+            document.getElementById('downloadImageBtn').onclick = () => {
+                const link = document.createElement('a');
+                link.href = src;
+                link.download = `수남매_사진_${Date.now()}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        };
+
+        window.navigate = function(screenId, params = {}) {
+            if (screenId === 'admin' && !sessionStorage.getItem('adminAuthed')) {
+                window.openAdminAuth();
+                return;
+            }
+
+            // 부모님 모드에서 벗어나면 관리자 인증 상태 초기화 (재입장 시 비번 요구)
+            if (screenId === 'home' || screenId === 'learner') {
+                sessionStorage.removeItem('adminAuthed');
+            }
+
+            window.currentScreen = screenId;
+            window.currentParams = params;
+            triggerRender();
+        };
+
+        function getHomeHTML() {
+            return `
+                <div class="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-indigo-500 to-indigo-700 text-white fade-in px-6 w-full h-full">
+                    <div class="mb-10 text-center">
+                        <div class="inline-flex items-center justify-center w-24 h-24 bg-white/20 rounded-full mb-6 shadow-inner backdrop-blur-sm relative">
+                            <i class="fa-solid fa-coins text-5xl text-yellow-300 drop-shadow-md relative z-10"></i>
+                            <div class="absolute -bottom-1 -right-2 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full border-2 border-indigo-600">클라우드 연동</div>
+                        </div>
+                        <h1 class="text-3xl font-extrabold tracking-tight">수남매 부자되기</h1>
+                        <p class="text-indigo-200 mt-2 text-sm font-medium">우리집 실시간 포인트 관리 앱</p>
+                    </div>
+                    
+                    <div class="w-full max-w-xs space-y-4">
+                        <button onclick="window.navigate('learner', {learnerId: 'suweol'})" class="w-full bg-white text-indigo-700 font-bold py-4 rounded-xl shadow-lg hover:bg-gray-50 transition transform active:scale-95 flex items-center justify-center text-lg">
+                            <span class="mr-2 text-2xl">👦</span> 이수월 (학습자)
+                        </button>
+                        <button onclick="window.navigate('learner', {learnerId: 'suna'})" class="w-full bg-white text-indigo-700 font-bold py-4 rounded-xl shadow-lg hover:bg-gray-50 transition transform active:scale-95 flex items-center justify-center text-lg">
+                            <span class="mr-2 text-2xl">👧</span> 이수나 (학습자)
+                        </button>
+                        
+                        <div class="h-4"></div> <!-- Spacer -->
+                        
+                        <button onclick="window.navigate('admin')" class="w-full bg-indigo-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-800 transition transform active:scale-95 flex items-center justify-center text-lg border border-indigo-400">
+                            <span class="mr-2 text-xl">👑</span> 부모님 (관리자)
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getAdminHTML() {
+            let pointReqsHTML = '';
+            if (window.state.pointRequests.length === 0) {
+                pointReqsHTML = `<div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-5 text-center text-gray-500 text-sm">상점 신청 대기열이 없습니다.</div>`;
+            } else {
+                pointReqsHTML = window.state.pointRequests.map(r => {
+                    let typeBadge = '';
+                    if(r.category === 'eng') typeBadge = '<span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">영어 도서</span>';
+                    else if(r.category === 'kor') typeBadge = '<span class="text-xs font-bold px-2 py-0.5 rounded bg-green-100 text-green-700">한글 도서</span>';
+                    else typeBadge = '<span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-700">기타 활동</span>';
+
+                    return `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 transition hover:shadow-md">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <div class="font-bold text-gray-800 flex items-center gap-2">${window.state.learners[r.learnerId].name} ${typeBadge}</div>
+                                <div class="text-xs text-gray-400 font-medium mt-1"><i class="fa-regular fa-clock mr-1"></i>${r.date}</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-100 mb-3 font-medium">
+                            ${r.detail}
+                        </div>
+                        ${r.image ? `
+                        <div class="mb-3">
+                            <img src="${r.image}" onclick="window.openImageViewer('${r.image}')" class="w-full h-24 object-cover rounded-lg border border-gray-200 cursor-pointer shadow-sm hover:opacity-90 transition">
+                            <div class="text-[10px] text-gray-400 text-center mt-1"><i class="fa-solid fa-magnifying-glass-plus mr-1"></i>터치하여 크게 보기 & 저장</div>
+                        </div>` : ''}
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="window.rejectPointRequest('${r.fbId}')" class="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-200 active:scale-95 transition">반려</button>
+                            <button onclick="window.approvePointRequest('${r.fbId}')" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold shadow shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition">확인 및 승인</button>
+                        </div>
+                    </div>
+                `}).join('');
+            }
+
+            let requestsHTML = '';
+            if (window.state.requests.length === 0) {
+                requestsHTML = `<div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-5 text-center text-gray-500 text-sm">대기 중인 요청이 없습니다.</div>`;
+            } else {
+                requestsHTML = window.state.requests.map(r => `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center mb-3 transition hover:shadow-md">
+                        <div>
+                            <div class="font-bold text-gray-800 mb-1">${window.state.learners[r.learnerId].name}</div>
+                            <div class="text-xs text-gray-500 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${r.date}</div>
+                            <div class="text-sm font-bold text-indigo-600 mt-1">${r.amount.toLocaleString()}원 요청</div>
+                        </div>
+                        <button onclick="window.approveRequest('${r.fbId}')" class="bg-emerald-500 text-white px-4 py-2.5 rounded-lg text-sm font-bold shadow shadow-emerald-200 hover:bg-emerald-600 active:scale-95 transition">돈 지급</button>
+                    </div>
+                `).join('');
+            }
+
+            const suweol = window.state.learners['suweol'];
+            const suna = window.state.learners['suna'];
+
+            return `
+                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
+                    <!-- Header -->
+                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('home')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold text-gray-800 flex items-center">관리자 모드 <span class="ml-2 w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span></h1>
+                        <button onclick="window.openChangePassword()" class="text-gray-400 hover:text-indigo-600 p-2 -mr-2 transition" title="설정"><i class="fa-solid fa-gear text-xl"></i></button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-5 space-y-8 hide-scroll pb-10 w-full">
+                        <!-- Point Requests Section -->
+                        <section>
+                            <h2 class="text-sm font-bold text-gray-600 mb-3 flex items-center">
+                                <i class="fa-solid fa-book-open-reader mr-2 text-indigo-500"></i>상점 신청 확인 (${window.state.pointRequests.length})
+                            </h2>
+                            ${pointReqsHTML}
+                        </section>
+
+                        <!-- Money Requests Section -->
+                        <section>
+                            <h2 class="text-sm font-bold text-gray-600 mb-3 flex items-center">
+                                <i class="fa-solid fa-hand-holding-dollar mr-2 text-emerald-500"></i>용돈 지급 대기열 (${window.state.requests.length})
+                            </h2>
+                            ${requestsHTML}
+                        </section>
+
+                        <!-- Learners Status Section -->
+                        <section>
+                            <h2 class="text-sm font-bold text-gray-600 mb-3 flex items-center"><i class="fa-solid fa-users mr-2 text-blue-500"></i>아이들 현황 및 강제 부여</h2>
+                            
+                            <!-- Suweol Card -->
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-4 relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -z-0"></div>
+                                <div class="flex justify-between items-center mb-4 relative z-10">
+                                    <h3 class="text-lg font-bold text-gray-800">👦 ${suweol.name}</h3>
+                                    <div class="text-right">
+                                        <div class="text-[10px] text-gray-400 font-bold">보유 금액</div>
+                                        <div class="text-indigo-600 font-black text-xl">${suweol.coupons.balance.toLocaleString()}원</div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3 mb-4 relative z-10">
+                                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex flex-col justify-center items-center">
+                                        <div class="text-xs text-gray-500 mb-1 font-medium">현재 포인트</div>
+                                        <div class="font-black text-gray-800 text-lg">${suweol.points.totalPoints} P</div>
+                                    </div>
+                                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex flex-col justify-center items-center">
+                                        <div class="text-xs text-gray-500 mb-1 font-medium">누적 발급</div>
+                                        <div class="font-black text-gray-800 text-lg">${suweol.coupons.totalIssued}회</div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3 relative z-10">
+                                    <button onclick="window.navigate('addPoint', {learnerId: 'suweol'})" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 active:scale-95 transition flex justify-center items-center text-sm">
+                                        <i class="fa-solid fa-plus-circle mr-1.5 text-indigo-500"></i> 관리자 부여
+                                    </button>
+                                    <button onclick="window.navigate('adminHistory', {learnerId: 'suweol'})" class="w-full bg-indigo-50 text-indigo-700 py-3 rounded-xl font-bold hover:bg-indigo-100 active:scale-95 transition flex justify-center items-center border border-indigo-100 text-sm">
+                                        <i class="fa-solid fa-list mr-1.5 text-indigo-500"></i> 기록 보기
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Suna Card -->
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-16 h-16 bg-pink-50 rounded-bl-full -z-0"></div>
+                                <div class="flex justify-between items-center mb-4 relative z-10">
+                                    <h3 class="text-lg font-bold text-gray-800">👧 ${suna.name}</h3>
+                                    <div class="text-right">
+                                        <div class="text-[10px] text-gray-400 font-bold">보유 금액</div>
+                                        <div class="text-pink-600 font-black text-xl">${suna.coupons.balance.toLocaleString()}원</div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3 mb-4 relative z-10">
+                                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex flex-col justify-center items-center">
+                                        <div class="text-xs text-gray-500 mb-1 font-medium">현재 포인트</div>
+                                        <div class="font-black text-gray-800 text-lg">${suna.points.totalPoints} P</div>
+                                    </div>
+                                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex flex-col justify-center items-center">
+                                        <div class="text-xs text-gray-500 mb-1 font-medium">누적 발급</div>
+                                        <div class="font-black text-gray-800 text-lg">${suna.coupons.totalIssued}회</div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3 relative z-10">
+                                    <button onclick="window.navigate('addPoint', {learnerId: 'suna'})" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 active:scale-95 transition flex justify-center items-center text-sm">
+                                        <i class="fa-solid fa-plus-circle mr-1.5 text-pink-500"></i> 관리자 부여
+                                    </button>
+                                    <button onclick="window.navigate('adminHistory', {learnerId: 'suna'})" class="w-full bg-pink-50 text-pink-700 py-3 rounded-xl font-bold hover:bg-pink-100 active:scale-95 transition flex justify-center items-center border border-pink-100 text-sm">
+                                        <i class="fa-solid fa-list mr-1.5 text-pink-500"></i> 기록 보기
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.approveRequest = async function(fbId) {
+            const req = window.state.requests.find(r => r.fbId === fbId);
+            if (!req) return;
+            
+            try {
+                // Remove request
+                await deleteDoc(doc(db, `${basePath}/moneyRequests`, fbId));
+                
+                // Deduct from balance
+                const l = window.state.learners[req.learnerId];
+                const newBalance = l.coupons.balance - req.amount;
+                await updateDoc(doc(db, `${basePath}/learners`, req.learnerId), { 'coupons.balance': newBalance });
+                
+                // Add to history
+                await addDoc(collection(db, `${basePath}/history`), {
+                    id: Date.now().toString(),
+                    learnerId: req.learnerId,
+                    date: new Date().toISOString().split('T')[0],
+                    type: 'use',
+                    item: '용돈 지급 완료',
+                    points: 0,
+                    amount: -req.amount,
+                    detail: '부모님 확인 후 지급'
+                });
+
+                window.showModal('지급 완료', `<b>${l.name}</b>에게 ${req.amount.toLocaleString()}원 지급 처리가 완료되었습니다.`);
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '처리 중 오류가 발생했습니다.');
+            }
+        };
+
+        window.rejectPointRequest = async function(fbId) {
+            try {
+                await deleteDoc(doc(db, `${basePath}/pointRequests`, fbId));
+                window.showModal('반려 완료', '해당 상점 신청을 반려(삭제) 하였습니다.');
+            } catch(e) {
+                console.error(e);
+            }
+        };
+
+        window.approvePointRequest = async function(fbId) {
+            const req = window.state.pointRequests.find(r => r.fbId === fbId);
+            if (!req) return;
+            
+            try {
+                const success = await window.processAddPoint(req.learnerId, 'merit', req.category, req.detail, req.date, 0, req.image);
+                if (success) {
+                    await deleteDoc(doc(db, `${basePath}/pointRequests`, fbId));
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        };
+
+        window.processAddPoint = async function(learnerId, category, item, detail, date, customPointsValue, image = null) {
+            if (!detail) {
+                window.showModal('입력 오류', '상세 내용을 반드시 입력해주세요.');
+                return false;
+            }
+
+            let pointsToAdd = 0;
+            let pointTypeKey = ''; 
+            let logItemName = '';
+
+            if (category === 'merit') {
+                if (item === 'eng') { pointsToAdd = 2; pointTypeKey = 'englishBooks'; logItemName = '영어 도서'; }
+                else if (item === 'kor') { pointsToAdd = 1; pointTypeKey = 'koreanBooks'; logItemName = '한글 도서'; }
+                else if (item === 'custom') { 
+                    pointsToAdd = customPointsValue;
+                    if (pointsToAdd <= 0) { window.showModal('입력 오류', '기타 상점은 1 이상의 숫자를 입력하세요.'); return false; }
+                    pointTypeKey = 'customPoints'; logItemName = '기타 활동'; 
+                }
+            } else { // demerit
+                if (item === 'cleanup') { pointsToAdd = -1; logItemName = '정리'; }
+                else if (item === 'hw') { pointsToAdd = -2; logItemName = '숙제 미션'; }
+                else if (item === 'custom') { 
+                    if (customPointsValue <= 0) { window.showModal('입력 오류', '기타 벌점은 1 이상의 숫자를 입력하세요.'); return false; }
+                    pointsToAdd = -customPointsValue; logItemName = '기타 벌점'; 
+                }
+            }
+
+            // Create a copy to mutate and calculate
+            const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
+            l.points.totalPoints += pointsToAdd;
+            if (pointTypeKey === 'englishBooks' || pointTypeKey === 'koreanBooks') {
+                l.points[pointTypeKey] += 1;
+            } else if (pointTypeKey === 'customPoints') {
+                l.points[pointTypeKey] += pointsToAdd;
+            }
+
+            const historyRecords = [];
+            
+            // Add primary record
+            historyRecords.push({
+                id: Date.now().toString(),
+                learnerId: learnerId,
+                date: date,
+                type: category,
+                item: logItemName,
+                points: pointsToAdd,
+                detail: detail,
+                image: image
+            });
+
+            // Check Coupons
+            const { updatedLearner, newHistories, msg } = window.calculateCoupons(l, learnerId);
+            if (newHistories.length > 0) {
+                historyRecords.push(...newHistories);
+            }
+
+            try {
+                // Update Firestore
+                await updateDoc(doc(db, `${basePath}/learners`, learnerId), {
+                    points: updatedLearner.points,
+                    coupons: updatedLearner.coupons
+                });
+                
+                // Batch-ish write for histories
+                for(const record of historyRecords) {
+                    await addDoc(collection(db, `${basePath}/history`), record);
+                }
+
+                let finalMsg = `<b>${updatedLearner.name}</b>에게 포인트가 성공적으로 처리되었습니다.`;
+                if (msg) finalMsg += '<br><br>' + msg; 
+
+                window.showModal('승인 및 처리 완료', finalMsg, () => {
+                    if (window.currentScreen === 'addPoint') window.navigate('admin');
+                });
+                return true;
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '저장 중 문제가 발생했습니다.');
+                return false;
+            }
+        };
+
+        window.calculateCoupons = function(l, learnerId) {
+            let issuedCount = 0;
+            let messages = [];
+            let gotSpecial = false;
+            let newHistories = [];
+
+            if (learnerId === 'suweol') {
+                while (l.points.totalPoints >= 10 && l.points.englishBooks >= 3) {
+                    l.coupons.balance += 2000;
+                    l.coupons.totalIssued += 1;
+                    issuedCount++;
+                    
+                    l.points.totalPoints -= 10;
+                    l.points.englishBooks -= 3;
+                    
+                    let pointsToDeduct = 4;
+                    while(pointsToDeduct > 0) {
+                        if (l.points.koreanBooks > 0) { l.points.koreanBooks--; pointsToDeduct -= 1; }
+                        else if (l.points.customPoints > 0) { l.points.customPoints--; pointsToDeduct -= 1; }
+                        else if (l.points.englishBooks > 0) { 
+                            l.points.englishBooks--; pointsToDeduct -= 2; 
+                            if (pointsToDeduct < 0) { l.points.customPoints += 1; pointsToDeduct = 0; }
+                        } else { l.points.customPoints -= pointsToDeduct; pointsToDeduct = 0; }
+                    }
+                }
+                if (issuedCount > 0) {
+                    messages.push(`🎉 <b>축하합니다!</b><br>조건을 달성하여 2,000원 쿠폰이 ${issuedCount}장 발급되었습니다!<br><span class="text-xs text-indigo-600">(남은 이월 포인트는 유지됩니다)</span>`);
+                }
+            } else if (learnerId === 'suna') {
+                while (l.points.totalPoints >= 10) {
+                    l.coupons.balance += 2000;
+                    l.coupons.totalIssued += 1;
+                    issuedCount++;
+                    l.points.totalPoints -= 10;
+                    
+                    let pointsToDeduct = 10;
+                    while(pointsToDeduct > 0) {
+                        if (l.points.englishBooks > 0 && pointsToDeduct >= 2) { l.points.englishBooks--; pointsToDeduct -= 2; }
+                        else if (l.points.koreanBooks > 0) { l.points.koreanBooks--; pointsToDeduct -= 1; }
+                        else if (l.points.customPoints > 0) { l.points.customPoints--; pointsToDeduct -= 1; }
+                        else if (l.points.englishBooks > 0) { l.points.englishBooks--; l.points.customPoints += 1; pointsToDeduct = 0; }
+                        else { l.points.customPoints -= pointsToDeduct; pointsToDeduct = 0; }
+                    }
+
+                    if (l.coupons.totalIssued === 3) {
+                        l.coupons.balance += 2000;
+                        gotSpecial = true;
+                    }
+                }
+                
+                if (issuedCount > 0) {
+                    messages.push(`🎉 <b>축하합니다!</b><br>10포인트를 달성하여 2,000원 쿠폰이 ${issuedCount}장 발급되었습니다!`);
+                    if (gotSpecial) messages.push("🎁 <b>특별 미션 달성!</b><br>누적 3번 쿠폰 발급으로 특별 쿠폰 2,000원이 추가 지급되었습니다!");
+                }
+            }
+
+            if (issuedCount > 0) {
+                for(let i=0; i<issuedCount; i++) {
+                    newHistories.push({
+                        id: Date.now().toString() + i, learnerId: learnerId, date: new Date().toISOString().split('T')[0],
+                        type: 'coupon', item: '쿠폰 발급 완료', points: 0, amount: 2000, detail: '목표 달성 자동 발급'
+                    });
+                }
+                if (gotSpecial) {
+                     newHistories.push({
+                        id: Date.now().toString() + 'sp', learnerId: learnerId, date: new Date().toISOString().split('T')[0],
+                        type: 'coupon', item: '특별 쿠폰 발급', points: 0, amount: 2000, detail: '누적 3회 달성 보너스'
+                    });
+                }
+            }
+            return { updatedLearner: l, newHistories, msg: messages.join('<br><br>') };
+        };
+
+        function getAdminHistoryHTML(learnerId) {
+            const l = window.state.learners[learnerId];
+            const myHistory = window.state.history.filter(h => h.learnerId === learnerId);
+            
+            let historyHTML = '';
+            if (myHistory.length === 0) {
+                historyHTML = `<div class="text-center text-gray-400 text-sm py-10 bg-white rounded-xl shadow-sm border border-gray-200">기록이 없습니다.</div>`;
+            } else {
+                historyHTML = myHistory.map((h) => {
+                    const isPos = h.points > 0 || h.amount > 0;
+                    const isNeg = h.points < 0 || h.amount < 0;
+                    const valueText = h.type === 'use' || h.type === 'coupon' 
+                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
+                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
+                    
+                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
+                    
+                    let typeBadge = '';
+                    if(h.type === 'merit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">상점/독서</span>';
+                    else if(h.type === 'demerit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600">벌점</span>';
+                    else if(h.type === 'coupon') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">쿠폰</span>';
+                    else typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">사용</span>';
+
+                    return `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 flex justify-between items-center transition hover:shadow-md">
+                        <div class="flex-1 pr-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                ${typeBadge}
+                                <span class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date}</span>
+                            </div>
+                            <div class="font-bold text-gray-800 text-sm">${h.item}</div>
+                            <div class="text-xs text-gray-500 mt-1 line-clamp-2">${h.detail}</div>
+                            ${h.image ? `<div class="mt-2"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-16 h-16 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
+                        </div>
+                        <div class="font-black text-lg ${colorClass} whitespace-nowrap">${valueText}</div>
+                    </div>
+                    `;
+                }).join('');
+            }
+
+            return `
+                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
+                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('admin')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold text-gray-800">${l.name}의 기록 조회</h1>
+                        <button onclick="window.exportHistoryToCSV('${learnerId}')" class="text-emerald-600 hover:text-emerald-800 p-2 -mr-2 transition flex items-center justify-center bg-emerald-50 rounded-lg text-sm font-bold px-3 border border-emerald-100 shadow-sm" title="엑셀로 저장">
+                            <i class="fa-solid fa-file-excel mr-1.5"></i> 엑셀 저장
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-5 hide-scroll pb-10 w-full">
+                        <h2 class="text-sm font-bold text-gray-500 mb-3 flex items-center"><i class="fa-solid fa-clock-rotate-left mr-2"></i>전체 내역 (클라우드 동기화됨)</h2>
+                        ${historyHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getAddPointHTML(defaultLearnerId = 'suweol') {
+            const today = new Date().toISOString().split('T')[0];
+            return `
+                <div class="flex flex-col h-full bg-white fade-in w-full">
+                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between border-b border-gray-100 sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('admin')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold text-gray-800">포인트 강제 부여</h1>
+                        <div class="w-8"></div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 space-y-6 hide-scroll pb-10 w-full">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">누구에게 주나요?</label>
+                            <select id="pointLearner" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
+                                <option value="suweol" ${defaultLearnerId === 'suweol' ? 'selected' : ''}>👦 이수월</option>
+                                <option value="suna" ${defaultLearnerId === 'suna' ? 'selected' : ''}>👧 이수나</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">분류</label>
+                                <select id="pointCategory" onchange="window.updatePointFormUI()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
+                                    <option value="merit">상점 (+)</option>
+                                    <option value="demerit">벌점 (-)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">날짜</label>
+                                <input type="date" id="pointDate" value="${today}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-700">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">항목</label>
+                            <select id="pointItem" onchange="window.updateCustomPointInput()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
+                                <option value="eng">영어 도서 (+2)</option>
+                                <option value="kor">한글 도서 (+1)</option>
+                                <option value="custom">기타 상점 (직접입력)</option>
+                            </select>
+                        </div>
+                        <div id="customPointDiv" class="hidden animate-[fadeIn_0.2s_ease-out]">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">포인트 (숫자만 입력)</label>
+                            <input type="number" id="pointValue" placeholder="예: 3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">상세 내용 <span class="text-rose-500">*</span></label>
+                            <input type="text" id="pointDetail" placeholder="예: 해리포터 1권 완독" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
+                        </div>
+                        <div class="pt-6">
+                            <button onclick="window.submitAdminPointForm()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition transform active:scale-95 text-lg">
+                                적용하기 (실시간 반영)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getLearnerHTML(learnerId) {
+            const l = window.state.learners[learnerId];
+            const isSuweol = learnerId === 'suweol';
+            const myHistory = window.state.history.filter(h => h.learnerId === learnerId).slice(0, 5); // Show latest 5
+            
+            let progressPercent = Math.min(100, Math.max(0, (l.points.totalPoints / 10) * 100));
+            
+            let engConditionHTML = '';
+            if (isSuweol) {
+                const engDone = l.points.englishBooks >= 3;
+                engConditionHTML = `
+                    <div class="mt-4 text-[11px] font-bold px-3 py-1.5 rounded-full inline-flex items-center ${engDone ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                        <i class="fa-solid fa-book-open mr-1.5"></i> 영어 도서 3권 필수 (현재 ${l.points.englishBooks}권) ${engDone ? '✅' : '❌'}
+                    </div>
+                `;
+            }
+
+            let historyHTML = '';
+            if (myHistory.length === 0) {
+                historyHTML = `<div class="text-center text-gray-400 text-sm py-6">아직 내역이 없어요.<br>열심히 포인트를 모아보세요!</div>`;
+            } else {
+                historyHTML = myHistory.map(h => {
+                    const isPos = h.points > 0 || h.amount > 0;
+                    const isNeg = h.points < 0 || h.amount < 0;
+                    const valueText = h.type === 'use' || h.type === 'coupon' 
+                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
+                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
+                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
+                    return `
+                    <div class="flex justify-between items-center py-3.5 border-b border-gray-100 last:border-0 transition hover:bg-gray-50 px-2 rounded-lg -mx-2">
+                        <div class="flex-1 pr-2">
+                            <div class="text-[10px] text-gray-400 font-bold tracking-wider mb-0.5">${h.date}</div>
+                            <div class="font-bold text-gray-800 text-sm">${h.item}</div>
+                            <div class="text-[11px] text-gray-500 mt-0.5 line-clamp-1 w-48">${h.detail}</div>
+                            ${h.image ? `<div class="mt-1.5"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-10 h-10 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
+                        </div>
+                        <div class="font-black text-sm ${colorClass}">${valueText}</div>
+                    </div>
+                    `;
+                }).join('');
+            }
+
+            return `
+                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
+                    <div class="bg-indigo-600 px-5 py-4 shadow-md flex items-center justify-between text-white sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('home')" class="hover:text-indigo-200 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold flex items-center">${l.name}의 지갑 <span class="ml-2 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span></h1>
+                        <div class="w-8"></div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-5 space-y-5 hide-scroll pb-10 w-full">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden">
+                            <h2 class="text-xs font-black text-gray-400 mb-2 tracking-wider">포인트 모으기</h2>
+                            <div class="flex justify-between items-end mb-2 border-b border-gray-100 pb-3">
+                                <span class="text-3xl font-black text-gray-800">${l.points.totalPoints} <span class="text-lg text-gray-400 font-bold">/ 10 P</span></span>
+                            </div>
+                            <div class="h-3.5 w-full bg-gray-100 rounded-full overflow-hidden mt-4 shadow-inner">
+                                <div class="h-full bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all duration-700 ease-out rounded-full" style="width: ${progressPercent}%;"></div>
+                            </div>
+                            ${engConditionHTML}
+                            <div class="grid grid-cols-3 gap-3 mt-6">
+                                <div class="bg-gray-50 p-2.5 rounded-xl text-center border border-gray-100">
+                                    <div class="text-[10px] text-gray-500 font-bold mb-1">영어 도서</div>
+                                    <div class="font-black text-gray-700 text-sm">${l.points.englishBooks}권</div>
+                                </div>
+                                <div class="bg-gray-50 p-2.5 rounded-xl text-center border border-gray-100">
+                                    <div class="text-[10px] text-gray-500 font-bold mb-1">한글 도서</div>
+                                    <div class="font-black text-gray-700 text-sm">${l.points.koreanBooks}권</div>
+                                </div>
+                                <div class="bg-gray-50 p-2.5 rounded-xl text-center border border-gray-100">
+                                    <div class="text-[10px] text-gray-500 font-bold mb-1">기타 상점</div>
+                                    <div class="font-black text-gray-700 text-sm">${l.points.customPoints}P</div>
+                                </div>
+                            </div>
+                            <button onclick="window.openPointReqModal('${learnerId}')" class="mt-5 w-full bg-indigo-50 text-indigo-600 border border-indigo-100 font-bold py-3 rounded-xl hover:bg-indigo-100 transition active:scale-95 flex items-center justify-center text-sm shadow-sm">
+                                <i class="fa-solid fa-camera mr-2"></i> 독서 / 상점 신청하기
+                            </button>
+                        </div>
+                        <div class="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-700 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                            <i class="fa-solid fa-piggy-bank absolute -right-6 -bottom-6 text-8xl opacity-20 transform -rotate-12"></i>
+                            <h2 class="text-xs font-bold text-indigo-200 mb-1 tracking-wider">사용 가능한 내 돈</h2>
+                            <div class="text-3xl font-black mb-1 drop-shadow-md">${l.coupons.balance.toLocaleString()}원</div>
+                            <div class="text-xs font-medium text-indigo-200 mb-6 flex items-center bg-black/10 w-max px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur-sm">
+                                <i class="fa-solid fa-trophy mr-1.5 text-yellow-300"></i> 지금까지 모은 총 금액: <span class="ml-1.5 font-bold text-white">${(l.coupons.totalIssued * 2000).toLocaleString()}원</span>
+                            </div>
+                            <button onclick="window.openRequestModal('${learnerId}')" class="w-full bg-white text-indigo-700 font-black py-3.5 rounded-xl shadow-md hover:bg-indigo-50 transition active:scale-95 flex items-center justify-center relative z-10">
+                                <i class="fa-solid fa-hand-holding-dollar mr-2 text-lg"></i> 용돈 지급 신청하기
+                            </button>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                            <h2 class="text-xs font-black text-gray-400 mb-4 tracking-wider">최근 내역 (동기화됨)</h2>
+                            <div class="space-y-1">${historyHTML}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.updatePointFormUI = function() {
+            const category = document.getElementById('pointCategory').value;
+            const itemSelect = document.getElementById('pointItem');
+            if (category === 'merit') {
+                itemSelect.innerHTML = `<option value="eng">영어 도서 (+2)</option><option value="kor">한글 도서 (+1)</option><option value="custom">기타 상점 (직접입력)</option>`;
+            } else {
+                itemSelect.innerHTML = `<option value="cleanup">정리 (-1)</option><option value="hw">숙제 미션 (-2)</option><option value="custom">기타 벌점 (직접입력)</option>`;
+            }
+            window.updateCustomPointInput();
+        };
+
+        window.updateCustomPointInput = function() {
+            const item = document.getElementById('pointItem').value;
+            const customDiv = document.getElementById('customPointDiv');
+            if (item === 'custom') customDiv.classList.remove('hidden');
+            else customDiv.classList.add('hidden');
+        };
+
+        window.submitAdminPointForm = function() {
+            const learnerId = document.getElementById('pointLearner').value;
+            const category = document.getElementById('pointCategory').value; 
+            const item = document.getElementById('pointItem').value; 
+            const customPoints = parseInt(document.getElementById('pointValue').value) || 0;
+            const detail = document.getElementById('pointDetail').value.trim();
+            const date = document.getElementById('pointDate').value;
+            window.processAddPoint(learnerId, category, item, detail, date, customPoints, null);
+        };
+
+        window.exportHistoryToCSV = function(learnerId) {
+            const l = window.state.learners[learnerId];
+            // Sort ascending for chronological list in Excel
+            const myHistory = window.state.history.filter(h => h.learnerId === learnerId).sort((a,b) => a.id.localeCompare(b.id));
+            if(myHistory.length === 0) { window.showModal('알림', '출력할 기록이 없습니다.'); return; }
+
+            let csvContent = "\uFEFF";
+            csvContent += "연번,날짜,분류,항목,포인트/금액,상세내용,사진첨부\n";
+            
+            myHistory.forEach((h, index) => {
+                let typeName = h.type;
+                if(h.type === 'merit') typeName = '상점/독서';
+                else if(h.type === 'demerit') typeName = '벌점';
+                else if(h.type === 'coupon') typeName = '쿠폰';
+                else typeName = '사용';
+                let val = h.type === 'use' || h.type === 'coupon' ? h.amount : h.points;
+                let detailStr = h.detail ? h.detail.replace(/"/g, '""') : '';
+                let hasPhoto = h.image ? "O" : "X";
+                csvContent += `${index + 1},${h.date},${typeName},${h.item},${val},"${detailStr}",${hasPhoto}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `수남매_${l.name}_기록_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.openPointReqModal = function(learnerId) {
+            document.getElementById('reqLearnerId').value = learnerId;
+            document.getElementById('reqDetail').value = '';
+            document.getElementById('reqImage').value = '';
+            window.currentUploadedImageBase64 = null;
+            document.getElementById('photoPreview').src = '';
+            document.getElementById('photoPreview').classList.add('hidden');
+            document.getElementById('photoPlaceholder').classList.remove('hidden');
+
+            const modal = document.getElementById('pointReqModal');
+            const box = document.getElementById('pointReqBox');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+        }
+
+        window.handleImageUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 600; const MAX_HEIGHT = 600;
+                    let width = img.width; let height = img.height;
+                    if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
+                    else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // Compress
+                    
+                    if(dataUrl.length > 500000) { // Limit size safety check
+                         window.showModal("알림", "이미지 용량이 너무 큽니다. 다른 사진을 선택해주세요.");
+                         return;
+                    }
+                    window.currentUploadedImageBase64 = dataUrl;
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = dataUrl;
+                    preview.classList.remove('hidden');
+                    document.getElementById('photoPlaceholder').classList.add('hidden');
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        };
+
+        window.submitPointRequest = async function() {
+            const learnerId = document.getElementById('reqLearnerId').value;
+            const item = document.getElementById('reqItem').value;
+            const detail = document.getElementById('reqDetail').value.trim();
+
+            if (!detail) { window.showModal('입력 오류', '상세 내용(책 제목 등)을 입력해주세요.'); return; }
+
+            const btnText = document.getElementById('pointReqSubmitText');
+            const btnLoader = document.getElementById('pointReqSubmitLoader');
+            btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
+
+            try {
+                await addDoc(collection(db, `${basePath}/pointRequests`), {
+                    id: Date.now().toString(),
+                    learnerId: learnerId,
+                    category: item,
+                    detail: detail,
+                    image: window.currentUploadedImageBase64,
+                    date: new Date().toISOString().split('T')[0]
+                });
+                window.closeModal('pointReqModal');
+                setTimeout(() => window.showModal('신청 완료!', '부모님 폰으로 신청을 보냈어요!'), 300);
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '전송 실패. 다시 시도해주세요.');
+            } finally {
+                btnText.classList.remove('hidden'); btnLoader.classList.add('hidden');
+            }
+        };
+
+        window.openRequestModal = function(learnerId) {
+            const l = window.state.learners[learnerId];
+            const pending = window.state.requests.filter(r => r.learnerId === learnerId).reduce((s, r) => s + r.amount, 0);
+            const available = l.coupons.balance - pending;
+
+            if (available <= 0) { window.showModal('알림', '현재 신청 가능한 잔액이 없거나, 이미 신청 후 대기 중입니다.'); return; }
+
+            const modal = document.getElementById('inputModal');
+            const box = document.getElementById('inputBox');
+            const input = document.getElementById('inputValue');
+            input.value = '';
+            document.getElementById('inputMessage').innerHTML = `현재 신청 가능 잔액: <b>${available.toLocaleString()}원</b>`;
+            
+            document.getElementById('inputConfirmBtn').onclick = async () => {
+                const amount = parseInt(input.value) || 0;
+                if (amount <= 0) { window.showModal('입력 오류', '올바른 금액을 입력해주세요.'); return; }
+                if (amount > available) { window.showModal('잔액 부족', `최대 ${available.toLocaleString()}원까지만 신청 가능합니다.`); return; }
+
+                const btnText = document.getElementById('inputConfirmText');
+                const btnLoader = document.getElementById('inputConfirmLoader');
+                btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
+
+                try {
+                    await addDoc(collection(db, `${basePath}/moneyRequests`), {
+                        id: Date.now().toString(),
+                        learnerId: learnerId,
+                        amount: amount,
+                        date: new Date().toISOString().split('T')[0]
+                    });
+                    window.closeModal('inputModal');
+                    setTimeout(() => window.showModal('신청 완료!', '부모님께 용돈 지급 신청이 전송되었습니다.'), 350);
+                } catch(e) { console.error(e); window.showModal('오류', '전송 실패.'); }
+                finally { btnText.classList.remove('hidden'); btnLoader.classList.add('hidden'); }
+            };
+
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); input.focus(); }, 10);
+        };
+
+        window.openAdminAuth = function() {
+            const modal = document.getElementById('passwordModal');
+            const box = document.getElementById('passwordBox');
+            const input = document.getElementById('adminPasswordInput');
+            input.value = '';
+            document.getElementById('passwordMessage').innerHTML = '비밀번호를 입력해주세요. <br><span class="text-xs">(초기 비밀번호: 0000)</span>';
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); input.focus(); }, 10);
+        };
+
+        window.verifyAdminPassword = function() {
+            const input = document.getElementById('adminPasswordInput').value;
+            if (input === window.state.admin.password) {
+                sessionStorage.setItem('adminAuthed', 'true'); 
+                window.closeModal('passwordModal');
+                setTimeout(() => { window.navigate('admin'); }, 300);
+            } else {
+                document.getElementById('passwordMessage').innerHTML = '<span class="text-rose-500 font-bold">비밀번호가 틀렸습니다.</span>';
+                document.getElementById('adminPasswordInput').value = '';
+                document.getElementById('adminPasswordInput').focus();
+            }
+        };
+
+        window.openFindPassword = function() {
+            window.closeModal('passwordModal');
+            setTimeout(() => {
+                const modal = document.getElementById('findPasswordModal');
+                const box = document.getElementById('findPasswordBox');
+                document.getElementById('recoveryEmailInput').value = '';
+                document.getElementById('findPasswordMessage').innerHTML = '등록된 이메일을 입력하시면 임시 비밀번호를 발급해 드립니다.';
+                modal.classList.remove('hidden');
+                setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+            }, 300); 
+        };
+
+        window.sendPasswordReset = async function() {
+            const email = document.getElementById('recoveryEmailInput').value;
+            if (email === window.state.admin.email) {
+                const btnText = document.getElementById('resetPwText'); const btnLoader = document.getElementById('resetPwLoader');
+                btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
+                
+                try {
+                    await updateDoc(doc(db, `${basePath}/config/admin`), { password: '0000' });
+                    window.state.admin.password = '0000';
+                    window.closeModal('findPasswordModal');
+                    setTimeout(() => window.showModal('초기화 완료', '비밀번호가 0000으로 초기화되었습니다.', () => window.openAdminAuth()), 300);
+                } catch(e) { console.error(e); }
+                finally { btnText.classList.remove('hidden'); btnLoader.classList.add('hidden'); }
+            } else {
+                document.getElementById('findPasswordMessage').innerHTML = '<span class="text-rose-500 font-bold">등록되지 않은 이메일입니다.</span><br><span class="text-xs text-indigo-500 font-bold">(데모용 이메일: parent@email.com)</span>';
+            }
+        };
+
+        window.openChangePassword = function() {
+            const modal = document.getElementById('changePasswordModal');
+            const box = document.getElementById('changePasswordBox');
+            document.getElementById('currentPasswordInput').value = '';
+            document.getElementById('newPasswordInput').value = '';
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+        };
+
+        window.changeAdminPassword = async function() {
+            const currentPw = document.getElementById('currentPasswordInput').value;
+            const newPw = document.getElementById('newPasswordInput').value;
+
+            if (currentPw !== window.state.admin.password) { window.showModal('오류', '현재 비밀번호가 일치하지 않습니다.'); return; }
+            if (newPw.length < 4) { window.showModal('오류', '새 비밀번호는 4자리 이상이어야 합니다.'); return; }
+
+            const btnText = document.getElementById('changePwText'); const btnLoader = document.getElementById('changePwLoader');
+            btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
+
+            try {
+                await updateDoc(doc(db, `${basePath}/config/admin`), { password: newPw });
+                window.closeModal('changePasswordModal');
+                setTimeout(() => window.showModal('변경 완료', '관리자 비밀번호가 성공적으로 변경(동기화)되었습니다.'), 300);
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '저장 실패.');
+            } finally {
+                btnText.classList.remove('hidden'); btnLoader.classList.add('hidden');
+            }
+        };
+
+        // Start App
+        document.addEventListener('DOMContentLoaded', () => {
+            initFirebase();
+        });
+    </script>
+</body>
+</html>
