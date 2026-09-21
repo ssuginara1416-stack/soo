@@ -545,7 +545,7 @@
                                 <i class="fa-regular fa-calendar mr-1.5"></i>${a.date}
                                 ${index === 0 ? '<span class="ml-2 text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-bold shadow-sm">진행 중(상단고정)</span>' : ''}
                             </div>
-                            <div class="text-sm font-bold text-gray-800 break-words leading-relaxed">${a.message}</div>
+                            <div class="text-sm font-bold text-gray-800 break-words leading-relaxed whitespace-pre-wrap">${a.message}</div>
                         </div>
                         <button onclick="window.deleteAnnouncement('${a.fbId}')" class="text-gray-300 hover:text-rose-500 transition p-1.5" title="공지 삭제"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
@@ -1149,7 +1149,7 @@
                         </div>
                         <div class="relative z-10 flex-1">
                             <div class="text-[10px] text-yellow-600 font-bold tracking-wider mb-0.5">부모님 알림 (${latestNotice.date})</div>
-                            <div class="font-bold text-yellow-900 text-sm leading-relaxed">${latestNotice.message}</div>
+                            <div class="font-bold text-yellow-900 text-sm leading-relaxed whitespace-pre-wrap">${latestNotice.message}</div>
                         </div>
                     </div>
                 `;
