@@ -157,7 +157,7 @@
         </div>
     </div>
 
-    <!-- Image Viewer Modal -->
+    <!-- Image Viewer Modal (Full size) -->
     <div id="imageViewerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 hidden opacity-0 transition-opacity duration-300">
         <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
             <div class="absolute top-4 right-4 flex gap-4">
@@ -235,7 +235,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = 'soo-family-app';
         
@@ -453,6 +453,9 @@
             triggerRender();
         };
 
+        // ==========================================
+        // UI Generator Functions (NO DUPLICATES)
+        // ==========================================
         function getHomeHTML() {
             return `
                 <div class="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-indigo-500 to-indigo-700 text-white fade-in px-6 w-full h-full">
@@ -473,7 +476,7 @@
                             <span class="mr-2 text-2xl">👧</span> 이수나 (학습자)
                         </button>
                         
-                        <div class="h-4"></div> <!-- Spacer -->
+                        <div class="h-4"></div>
                         
                         <button onclick="window.navigate('admin')" class="w-full bg-indigo-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-800 transition transform active:scale-95 flex items-center justify-center text-lg border border-indigo-400">
                             <span class="mr-2 text-xl">👑</span> 부모님 (관리자)
@@ -818,6 +821,143 @@
             `;
         }
 
+        function getReadingListHTML(learnerId, fromAdmin = false) {
+            const l = window.state.learners[learnerId];
+            const readingHistory = window.state.history.filter(h => h.learnerId === learnerId && h.type === 'merit' && (h.item === '영어 도서' || h.item === '한글 도서'));
+            
+            let totalEng = readingHistory.filter(h => h.item === '영어 도서').length;
+            let totalKor = readingHistory.filter(h => h.item === '한글 도서').length;
+            
+            const monthlyStats = {};
+            readingHistory.forEach(h => {
+                const month = h.date.substring(0, 7);
+                if (!monthlyStats[month]) monthlyStats[month] = { eng: 0, kor: 0, total: 0 };
+                monthlyStats[month].total++;
+                if (h.item === '영어 도서') monthlyStats[month].eng++;
+                if (h.item === '한글 도서') monthlyStats[month].kor++;
+            });
+
+            let monthlyHTML = Object.keys(monthlyStats).sort((a,b) => b.localeCompare(a)).map(m => {
+                const parts = m.split('-');
+                return `
+                <div class="bg-gray-50 rounded-xl p-3 mb-2 border border-gray-100 flex justify-between items-center">
+                    <span class="font-bold text-gray-700 text-sm">${parts[0]}년 ${parseInt(parts[1])}월</span>
+                    <span class="text-xs font-medium text-gray-500">총 <strong class="text-indigo-600 text-sm">${monthlyStats[m].total}</strong>권 (영 ${monthlyStats[m].eng} / 한 ${monthlyStats[m].kor})</span>
+                </div>`;
+            }).join('');
+            
+            if (Object.keys(monthlyStats).length === 0) monthlyHTML = `<div class="text-center text-gray-400 text-sm py-4">아직 독서 기록이 없습니다.</div>`;
+
+            let listHTML = readingHistory.map(h => `
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 transition hover:shadow-md">
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date}</div>
+                        ${h.item === '영어 도서' ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">영어 도서</span>' : '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-600">한글 도서</span>'}
+                    </div>
+                    <div class="font-bold text-gray-800 text-sm mb-1">${h.detail}</div>
+                    ${h.image ? `<div class="mt-2"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-20 h-20 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
+                </div>
+            `).join('');
+
+            return `
+                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
+                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('${fromAdmin ? 'admin' : 'learner'}', {learnerId: '${learnerId}'})" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-book-open text-indigo-500 mr-2"></i>독서 기록장</h1>
+                        <button onclick="window.exportReadingListToCSV('${learnerId}')" class="text-indigo-600 hover:text-indigo-800 p-2 -mr-2 transition flex items-center justify-center bg-indigo-50 rounded-lg text-sm font-bold px-3 border border-indigo-100 shadow-sm" title="엑셀로 저장">
+                            <i class="fa-solid fa-file-excel mr-1.5"></i> 엑셀 저장
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-5 hide-scroll pb-10 w-full space-y-6">
+                        <section class="bg-indigo-600 text-white rounded-2xl p-5 shadow-md relative overflow-hidden">
+                            <i class="fa-solid fa-book-journal-whills absolute -right-4 -bottom-4 text-7xl opacity-20 transform -rotate-12"></i>
+                            <h2 class="text-xs font-bold text-indigo-200 mb-1 tracking-wider">${l.name}의 누적 독서량</h2>
+                            <div class="text-3xl font-black mb-3">${totalEng + totalKor} <span class="text-lg font-medium">권</span></div>
+                            <div class="flex gap-4">
+                                <div><span class="text-[10px] text-indigo-200 block mb-0.5">영어 도서</span><span class="font-bold">${totalEng}권</span></div>
+                                <div><span class="text-[10px] text-indigo-200 block mb-0.5">한글 도서</span><span class="font-bold">${totalKor}권</span></div>
+                            </div>
+                        </section>
+                        <section>
+                            <h3 class="text-sm font-bold text-gray-600 mb-3">월별 요약</h3>
+                            ${monthlyHTML}
+                        </section>
+                        <section>
+                            <h3 class="text-sm font-bold text-gray-600 mb-3">전체 기록</h3>
+                            ${listHTML}
+                        </section>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getAdminHistoryHTML(learnerId) {
+            const l = window.state.learners[learnerId];
+            const myHistory = window.state.history.filter(h => h.learnerId === learnerId);
+            
+            let historyHTML = '';
+            if (myHistory.length === 0) {
+                historyHTML = `<div class="text-center text-gray-400 text-sm py-10 bg-white rounded-xl shadow-sm border border-gray-200">기록이 없습니다.</div>`;
+            } else {
+                historyHTML = myHistory.map((h) => {
+                    const isPos = h.points > 0 || h.amount > 0;
+                    const isNeg = h.points < 0 || h.amount < 0;
+                    const valueText = h.type === 'use' || h.type === 'coupon' 
+                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
+                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
+                    
+                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
+                    
+                    let typeBadge = '';
+                    if(h.type === 'merit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">상점/독서</span>';
+                    else if(h.type === 'demerit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600">벌점</span>';
+                    else if(h.type === 'coupon') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">쿠폰</span>';
+                    else typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">사용</span>';
+
+                    // 쿠폰 기록은 자동 삭제 처리되므로, 수동 삭제 방지
+                    const deleteBtnHTML = (h.type === 'coupon') ? '' : `
+                        <button onclick="window.revertHistoryRecord('${h.fbId}', '${learnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
+                            <i class="fa-solid fa-rotate-left mr-1"></i>삭제
+                        </button>
+                    `;
+
+                    return `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 flex justify-between items-center transition hover:shadow-md">
+                        <div class="flex-1 pr-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                ${typeBadge}
+                                <span class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date}</span>
+                            </div>
+                            <div class="font-bold text-gray-800 text-sm">${h.item}</div>
+                            <div class="text-xs text-gray-500 mt-1 line-clamp-2">${h.detail}</div>
+                            ${h.image ? `<div class="mt-2"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-16 h-16 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
+                        </div>
+                        <div class="flex flex-col items-end gap-1.5">
+                            <div class="font-black text-lg ${colorClass} whitespace-nowrap">${valueText}</div>
+                            ${deleteBtnHTML}
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+
+            return `
+                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
+                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('admin')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold text-gray-800">${l.name}의 기록 조회</h1>
+                        <button onclick="window.exportHistoryToCSV('${learnerId}')" class="text-emerald-600 hover:text-emerald-800 p-2 -mr-2 transition flex items-center justify-center bg-emerald-50 rounded-lg text-sm font-bold px-3 border border-emerald-100 shadow-sm" title="엑셀로 저장">
+                            <i class="fa-solid fa-file-excel mr-1.5"></i> 엑셀 저장
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-5 hide-scroll pb-10 w-full">
+                        <h2 class="text-sm font-bold text-gray-500 mb-3 flex items-center"><i class="fa-solid fa-clock-rotate-left mr-2"></i>전체 내역 (클라우드 동기화됨)</h2>
+                        ${historyHTML}
+                    </div>
+                </div>
+            `;
+        }
+
         function getAddPointHTML(defaultLearnerId = 'suweol') {
             const today = new Date().toISOString().split('T')[0];
             const myHistory = window.state.history.filter(h => h.learnerId === defaultLearnerId).slice(0, 5);
@@ -840,6 +980,12 @@
                     else if(h.type === 'coupon') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">쿠폰</span>';
                     else typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">사용</span>';
 
+                    const deleteBtnHTML = (h.type === 'coupon') ? '' : `
+                        <button onclick="window.revertHistoryRecord('${h.fbId}', '${defaultLearnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
+                            <i class="fa-solid fa-rotate-left mr-1"></i>삭제
+                        </button>
+                    `;
+
                     return `
                     <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 mb-2 flex justify-between items-center">
                         <div class="flex-1 pr-2">
@@ -850,11 +996,9 @@
                             <div class="font-bold text-gray-800 text-xs">${h.item}</div>
                             <div class="text-[10px] text-gray-500 mt-0.5 line-clamp-1">${h.detail}</div>
                         </div>
-                        <div class="flex flex-col items-end">
-                            <div class="font-black text-sm ${colorClass} mb-1">${valueText}</div>
-                            <button onclick="window.revertHistoryRecord('${h.fbId}', '${defaultLearnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
-                                <i class="fa-solid fa-rotate-left mr-1"></i>삭제
-                            </button>
+                        <div class="flex flex-col items-end gap-1.5">
+                            <div class="font-black text-sm ${colorClass}">${valueText}</div>
+                            ${deleteBtnHTML}
                         </div>
                     </div>
                     `;
@@ -928,6 +1072,95 @@
             `;
         }
 
+        // ==========================================
+        // Point Re-calculation System (되돌리기 코어 로직)
+        // ==========================================
+        window.revertHistoryRecord = async function(fbId, learnerId) {
+            const recordToDelete = window.state.history.find(r => r.fbId === fbId);
+            if (!recordToDelete) return;
+            
+            if (!confirm(`[${recordToDelete.item}] 내역을 삭제하시겠습니까?\n관련된 포인트와 쿠폰이 처음부터 정확하게 재계산되어 복구됩니다.`)) return;
+
+            try {
+                // 삭제할 기록과 자동 생성된 쿠폰을 제외하고 사용자가 발생시킨 이벤트들만 뽑아서 과거부터 정렬
+                const userEvents = window.state.history.filter(h => 
+                    h.learnerId === learnerId && 
+                    h.type !== 'coupon' && 
+                    h.fbId !== fbId
+                ).sort((a, b) => a.id.localeCompare(b.id));
+
+                // 학습자 상태 완전히 0으로 초기화
+                const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
+                l.points = { englishBooks: 0, koreanBooks: 0, customPoints: 0, totalPoints: 0 };
+                l.coupons = { balance: 0, totalIssued: 0 };
+
+                const newHistory = [];
+
+                // 과거부터 순서대로 다시 이벤트를 부여하며 쿠폰 발급 여부를 재시뮬레이션
+                for (const h of userEvents) {
+                    newHistory.push(h);
+                    
+                    if (h.type === 'use') {
+                        l.coupons.balance += h.amount; // amount가 마이너스 값이므로 더하면 차감됨
+                    } else if (h.type === 'merit' || h.type === 'demerit') {
+                        l.points.totalPoints += h.points;
+                        if (h.item === '영어 도서') l.points.englishBooks += 1;
+                        else if (h.item === '한글 도서') l.points.koreanBooks += 1;
+                        else if (h.type === 'merit' && h.item === '기타 활동') l.points.customPoints += h.points;
+                        else if (h.type === 'demerit' && h.item === '정리') l.points.customPoints += h.points;
+                        else if (h.type === 'demerit' && h.item === '숙제 미션') l.points.customPoints += h.points;
+                        else if (h.type === 'demerit' && h.item === '기타 벌점') l.points.customPoints += h.points;
+
+                        // 점수 누적 후 쿠폰 발급 조건을 만족했는지 체크
+                        const { updatedLearner, newHistories } = window.calculateCoupons(l, learnerId);
+                        if (newHistories.length > 0) {
+                            newHistories.forEach(nh => {
+                                nh.fbId = nh.id; 
+                                newHistory.push(nh);
+                            });
+                        }
+                    }
+                }
+
+                if (!isLocalMode) {
+                    // Firebase 통신: 기존 내역 싹 지우고 재계산된 내역으로 통째로 교체
+                    const batch = writeBatch(db);
+                    
+                    const oldHistories = window.state.history.filter(h => h.learnerId === learnerId);
+                    oldHistories.forEach(h => {
+                        batch.delete(doc(db, `${basePath}/history`, h.fbId));
+                    });
+
+                    newHistory.forEach(h => {
+                        const newRef = doc(collection(db, `${basePath}/history`));
+                        h.fbId = newRef.id;
+                        batch.set(newRef, h);
+                    });
+
+                    batch.update(doc(db, `${basePath}/learners`, learnerId), {
+                        points: l.points, coupons: l.coupons
+                    });
+
+                    await batch.commit();
+                } else {
+                    window.state.learners[learnerId] = l;
+                    window.state.history = window.state.history.filter(h => h.learnerId !== learnerId);
+                    newHistory.forEach(h => {
+                        window.state.history.unshift(h);
+                    });
+                    window.state.history.sort((a, b) => b.id.localeCompare(a.id));
+                    triggerRender();
+                }
+
+                window.showModal('복구 완료', '해당 내역이 완벽하게 삭제되고 포인트가 재계산되었습니다.', () => {
+                    triggerRender();
+                });
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '재계산 중 문제가 발생했습니다.');
+            }
+        };
+
         window.updatePointFormUI = function() {
             const category = document.getElementById('pointCategory').value;
             const itemSelect = document.getElementById('pointItem');
@@ -990,6 +1223,30 @@
             const link = document.createElement("a");
             link.setAttribute("href", url);
             link.setAttribute("download", `수남매_${l.name}_기록_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.exportReadingListToCSV = function(learnerId) {
+            const l = window.state.learners[learnerId];
+            const readingHistory = window.state.history.filter(h => h.learnerId === learnerId && h.type === 'merit' && (h.item === '영어 도서' || h.item === '한글 도서')).sort((a,b) => a.id.localeCompare(b.id));
+            if(readingHistory.length === 0) { window.showModal('알림', '출력할 독서 기록이 없습니다.'); return; }
+
+            let csvContent = "\uFEFF";
+            csvContent += "연번,날짜,도서구분,상세내용(책제목),사진첨부\n";
+            
+            readingHistory.forEach((h, index) => {
+                let detailStr = h.detail ? h.detail.replace(/"/g, '""') : '';
+                let hasPhoto = h.image ? "O" : "X";
+                csvContent += `${index + 1},${h.date},${h.item},"${detailStr}",${hasPhoto}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `수남매_${l.name}_독서기록장_${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
