@@ -99,7 +99,7 @@
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="announcementBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2">새 공지사항 작성</h3>
             <p class="text-gray-500 text-sm mb-4">아이들 화면 상단에 고정될 메시지를 입력하세요.</p>
-            <textarea id="announcementText" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium resize-none h-24" placeholder="예: 이번 주말은 특별 상점 2배 이벤트입니다!"></textarea>
+            <textarea id="announcementText" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium resize-none h-24 whitespace-pre-wrap" placeholder="예: 이번 주말은 특별 상점 2배 이벤트입니다!"></textarea>
             <div class="flex gap-3">
                 <button onclick="closeModal('announcementModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
                 <button onclick="submitAnnouncement()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
@@ -157,7 +157,7 @@
         </div>
     </div>
 
-    <!-- Image Viewer Modal (Full size) -->
+    <!-- Image Viewer Modal -->
     <div id="imageViewerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 hidden opacity-0 transition-opacity duration-300">
         <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
             <div class="absolute top-4 right-4 flex gap-4">
@@ -206,7 +206,7 @@
         </div>
     </div>
 
-    <!-- Change Settings (Password & Security Question) Modal -->
+    <!-- Change Settings Modal -->
     <div id="changePasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="changePasswordBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2">설정 변경</h3>
@@ -687,6 +687,14 @@
                                 </div>
                             </div>
                         </section>
+                        
+                        <!-- 데이터 초기화 섹션 -->
+                        <div class="mt-10 border-t border-rose-100 pt-6">
+                            <h2 class="text-xs font-black text-rose-400 mb-3 tracking-wider">위험 구역 (Danger Zone)</h2>
+                            <button onclick="window.confirmResetData()" class="w-full bg-rose-50 text-rose-600 border border-rose-200 font-bold py-3.5 rounded-xl hover:bg-rose-100 transition active:scale-95 flex items-center justify-center text-sm shadow-sm">
+                                <i class="fa-solid fa-triangle-exclamation mr-2"></i> 모든 앱 데이터 초기화
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -832,7 +840,8 @@
                 if (msg) finalMsg += '<br><br>' + msg; 
 
                 window.showModal('승인 및 처리 완료', finalMsg, () => {
-                    if (window.currentScreen === 'addPoint') window.navigate('admin');
+                    // 강제 부여 창에서 튕겨나가지 않고 다시 렌더링해서 최근 내역을 바로 확인할 수 있도록 유지
+                    triggerRender();
                 });
                 return true;
             } catch(e) {
@@ -983,7 +992,6 @@
             
             if (!confirm(`[${h.item}] 내역을 정말 취소(삭제)하시겠습니까?\n관련 포인트나 금액이 복구됩니다.`)) return;
             
-            // 기존 상태 복사 후 복구 계산
             const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
             
             if (h.type === 'coupon') {
@@ -1112,6 +1120,116 @@
             document.body.removeChild(link);
         };
 
+        function getAddPointHTML(defaultLearnerId = 'suweol') {
+            const today = new Date().toISOString().split('T')[0];
+            const myHistory = window.state.history.filter(h => h.learnerId === defaultLearnerId).slice(0, 5);
+            
+            let recentHistoryHTML = '';
+            if (myHistory.length === 0) {
+                recentHistoryHTML = `<div class="text-center text-gray-400 text-sm py-4 bg-gray-50 rounded-xl border border-gray-100">최근 부여된 기록이 없습니다.</div>`;
+            } else {
+                recentHistoryHTML = myHistory.map((h) => {
+                    const isPos = h.points > 0 || h.amount > 0;
+                    const isNeg = h.points < 0 || h.amount < 0;
+                    const valueText = h.type === 'use' || h.type === 'coupon' 
+                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
+                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
+                    
+                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
+                    let typeBadge = '';
+                    if(h.type === 'merit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">상점/독서</span>';
+                    else if(h.type === 'demerit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600">벌점</span>';
+                    else if(h.type === 'coupon') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">쿠폰</span>';
+                    else typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">사용</span>';
+
+                    return `
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 mb-2 flex justify-between items-center">
+                        <div class="flex-1 pr-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                ${typeBadge}
+                                <span class="text-[10px] text-gray-400 font-bold">${h.date}</span>
+                            </div>
+                            <div class="font-bold text-gray-800 text-xs">${h.item}</div>
+                            <div class="text-[10px] text-gray-500 mt-0.5 line-clamp-1">${h.detail}</div>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <div class="font-black text-sm ${colorClass} mb-1">${valueText}</div>
+                            <button onclick="window.revertHistoryRecord('${h.fbId}', '${defaultLearnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
+                                <i class="fa-solid fa-rotate-left mr-1"></i>삭제
+                            </button>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+
+            return `
+                <div class="flex flex-col h-full bg-white fade-in w-full">
+                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between border-b border-gray-100 sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('admin')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold text-gray-800">포인트 강제 부여</h1>
+                        <div class="w-8"></div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 hide-scroll pb-10 w-full">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">누구에게 주나요?</label>
+                                <select id="pointLearner" onchange="window.navigate('addPoint', {learnerId: this.value})" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
+                                    <option value="suweol" ${defaultLearnerId === 'suweol' ? 'selected' : ''}>👦 이수월</option>
+                                    <option value="suna" ${defaultLearnerId === 'suna' ? 'selected' : ''}>👧 이수나</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">분류</label>
+                                    <select id="pointCategory" onchange="window.updatePointFormUI()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
+                                        <option value="merit">상점 (+)</option>
+                                        <option value="demerit">벌점 (-)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">날짜</label>
+                                    <input type="date" id="pointDate" value="${today}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-700">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">항목</label>
+                                <select id="pointItem" onchange="window.updateCustomPointInput()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
+                                    <option value="eng">영어 도서 (+2)</option>
+                                    <option value="kor">한글 도서 (+1)</option>
+                                    <option value="custom">기타 상점 (직접입력)</option>
+                                </select>
+                            </div>
+                            <div id="customPointDiv" class="hidden animate-[fadeIn_0.2s_ease-out]">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">포인트 (숫자만 입력)</label>
+                                <input type="number" id="pointValue" placeholder="예: 3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">상세 내용 <span class="text-rose-500">*</span></label>
+                                <input type="text" id="pointDetail" placeholder="예: 해리포터 1권 완독" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
+                            </div>
+                            <div class="pt-2">
+                                <button id="adminPointSubmitBtn" onclick="window.submitAdminPointForm()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition transform active:scale-95 text-lg flex justify-center items-center">
+                                    <span id="adminPointSubmitText">적용하기 (실시간 반영)</span>
+                                    <i id="adminPointSubmitLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 최근 부여 내역 확인 기능 추가 -->
+                        <div class="pt-6 border-t border-gray-100 mt-8">
+                            <h3 class="text-sm font-bold text-gray-600 mb-3 flex items-center">
+                                <i class="fa-solid fa-clock-rotate-left text-indigo-400 mr-2"></i>방금 부여한 내역 (최근 5건)
+                            </h3>
+                            <div class="space-y-1">
+                                ${recentHistoryHTML}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         window.updatePointFormUI = function() {
             const category = document.getElementById('pointCategory').value;
             const itemSelect = document.getElementById('pointItem');
@@ -1130,14 +1248,23 @@
             else customDiv.classList.add('hidden');
         };
 
-        window.submitAdminPointForm = function() {
+        window.submitAdminPointForm = async function() {
             const learnerId = document.getElementById('pointLearner').value;
             const category = document.getElementById('pointCategory').value; 
             const item = document.getElementById('pointItem').value; 
             const customPoints = parseInt(document.getElementById('pointValue').value) || 0;
             const detail = document.getElementById('pointDetail').value.trim();
             const date = document.getElementById('pointDate').value;
-            window.processAddPoint(learnerId, category, item, detail, date, customPoints, null);
+            
+            const btnText = document.getElementById('adminPointSubmitText');
+            const btnLoader = document.getElementById('adminPointSubmitLoader');
+            if(btnText) btnText.classList.add('hidden');
+            if(btnLoader) btnLoader.classList.remove('hidden');
+
+            await window.processAddPoint(learnerId, category, item, detail, date, customPoints, null);
+
+            if(btnText) btnText.classList.remove('hidden');
+            if(btnLoader) btnLoader.classList.add('hidden');
         };
 
         window.exportHistoryToCSV = function(learnerId) {
@@ -1168,6 +1295,52 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        };
+
+        window.confirmResetData = function() {
+            const word = prompt("⚠️ 경고: 모든 포인트, 쿠폰, 전체 기록이 복구할 수 없게 영구적으로 삭제됩니다.\n\n정말 초기화하시려면 아래에 '초기화' 라고 입력해주세요.");
+            if (word === '초기화') {
+                window.resetAllData();
+            } else if (word !== null) {
+                window.showModal('취소됨', '입력한 단어가 일치하지 않아 데이터 초기화가 취소되었습니다.');
+            }
+        };
+
+        window.resetAllData = async function() {
+            try {
+                const emptyLearner = (id, name) => ({
+                    id, name, points: { englishBooks: 0, koreanBooks: 0, customPoints: 0, totalPoints: 0 }, coupons: { balance: 0, totalIssued: 0 }
+                });
+                const suweol = emptyLearner('suweol', '이수월');
+                const suna = emptyLearner('suna', '이수나');
+
+                if (!isLocalMode) {
+                    await updateDoc(doc(db, `${basePath}/learners`, 'suweol'), suweol);
+                    await updateDoc(doc(db, `${basePath}/learners`, 'suna'), suna);
+
+                    // History 초기화
+                    const histSnap = await getDocs(collection(db, `${basePath}/history`));
+                    histSnap.forEach(d => deleteDoc(doc(db, `${basePath}/history`, d.id)));
+                    
+                    const prSnap = await getDocs(collection(db, `${basePath}/pointRequests`));
+                    prSnap.forEach(d => deleteDoc(doc(db, `${basePath}/pointRequests`, d.id)));
+                    
+                    const mrSnap = await getDocs(collection(db, `${basePath}/moneyRequests`));
+                    mrSnap.forEach(d => deleteDoc(doc(db, `${basePath}/moneyRequests`, d.id)));
+                } else {
+                    window.state.learners.suweol = suweol;
+                    window.state.learners.suna = suna;
+                    window.state.history = [];
+                    window.state.pointRequests = [];
+                    window.state.requests = [];
+                }
+                
+                window.showModal('데이터 초기화 완료', '모든 앱 데이터가 처음 상태로 깨끗하게 초기화되었습니다.');
+                window.navigate('admin');
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '초기화 중 문제가 발생했습니다.');
+            }
         };
 
         window.openPointReqModal = function(learnerId) {
