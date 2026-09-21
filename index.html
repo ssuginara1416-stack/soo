@@ -69,10 +69,8 @@
         <div id="screenContent" class="w-full h-full flex flex-col hidden"></div>
     </div>
     
-    <!-- ==================== UI Modals ==================== -->
-
-    <!-- 1. Alert Modal (일반 알림창) -->
-    <div id="alertModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
+    <!-- Alert Modal (기본 팝업 대체) -->
+    <div id="alertModal" class="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="alertBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2" id="alertTitle">알림</h3>
             <p class="text-gray-600 mb-6 text-sm leading-relaxed whitespace-pre-wrap" id="alertMessage">메시지 내용</p>
@@ -80,32 +78,32 @@
         </div>
     </div>
 
-    <!-- 2. Confirm Modal (삭제/진행 확인창 - 새로 추가됨!) -->
-    <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
+    <!-- Confirm Modal (진행/취소 팝업 대체) -->
+    <div id="confirmModal" class="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="confirmBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2" id="confirmTitle">확인</h3>
             <p class="text-gray-600 mb-6 text-sm leading-relaxed whitespace-pre-wrap" id="confirmMessage">정말 진행하시겠습니까?</p>
             <div class="flex gap-3">
-                <button onclick="closeConfirmModal(false)" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
-                <button onclick="closeConfirmModal(true)" class="flex-1 bg-rose-500 text-white font-bold py-3.5 rounded-xl hover:bg-rose-600 transition shadow-md">진행</button>
+                <button id="confirmCancelBtn" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button id="confirmOkBtn" class="flex-1 bg-rose-600 text-white font-bold py-3.5 rounded-xl hover:bg-rose-700 transition shadow-md">확인</button>
             </div>
         </div>
     </div>
 
-    <!-- 3. Prompt Modal (입력 요청창 - 새로 추가됨!) -->
-    <div id="promptModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
+    <!-- Prompt Modal (문자/숫자 입력 팝업 대체) -->
+    <div id="promptModal" class="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="promptBox">
-            <h3 class="text-xl font-bold text-indigo-600 mb-2" id="promptTitle">입력</h3>
-            <p class="text-gray-600 mb-4 text-sm leading-relaxed whitespace-pre-wrap" id="promptMessage">메시지</p>
-            <input type="text" id="promptInput" onkeydown="if(event.key === 'Enter') closePromptModal(true)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-center" placeholder="입력하세요">
+            <h3 class="text-xl font-bold text-gray-900 mb-2" id="promptTitle">입력</h3>
+            <p class="text-gray-600 mb-4 text-sm leading-relaxed whitespace-pre-wrap" id="promptMessage">값을 입력해주세요.</p>
+            <input type="text" id="promptInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-lg">
             <div class="flex gap-3">
-                <button onclick="closePromptModal(false)" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
-                <button onclick="closePromptModal(true)" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md">확인</button>
+                <button id="promptCancelBtn" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button id="promptOkBtn" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md">확인</button>
             </div>
         </div>
     </div>
     
-    <!-- Input Modal (For requesting money) -->
+    <!-- Input Modal (용돈 신청용) -->
     <div id="inputModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="inputBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2" id="inputTitle">용돈 신청</h3>
@@ -183,12 +181,12 @@
         </div>
     </div>
 
-    <!-- Image Viewer Modal -->
-    <div id="imageViewerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 hidden opacity-0 transition-opacity duration-300">
+    <!-- Image Viewer Modal (강력한 다운로드 기능 포함) -->
+    <div id="imageViewerModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-90 hidden opacity-0 transition-opacity duration-300">
         <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
             <div class="absolute top-4 right-4 flex gap-4">
-                <button id="downloadImageBtn" class="text-white text-2xl opacity-70 hover:opacity-100 p-2"><i class="fa-solid fa-download"></i></button>
-                <button onclick="closeModal('imageViewerModal')" class="text-white text-3xl opacity-70 hover:opacity-100 p-2"><i class="fa-solid fa-xmark"></i></button>
+                <button id="downloadImageBtn" class="text-white text-2xl opacity-70 hover:opacity-100 p-2" title="사진 다운로드"><i class="fa-solid fa-download"></i></button>
+                <button onclick="closeModal('imageViewerModal')" class="text-white text-3xl opacity-70 hover:opacity-100 p-2" title="닫기"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <img id="fullImageViewer" src="" class="max-w-full max-h-full object-contain rounded-lg">
         </div>
@@ -210,7 +208,7 @@
         </div>
     </div>
 
-    <!-- Find Password Modal (보안 질문 방식) -->
+    <!-- Find Password Modal -->
     <div id="findPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="findPasswordBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2">비밀번호 찾기</h3>
@@ -412,7 +410,7 @@
         }
 
         // ==========================================
-        // Custom Modals Logic
+        // Custom Modal Systems (강제 팝업 차단 우회)
         // ==========================================
         window.showModal = function(title, message, callback = null) {
             document.getElementById('alertTitle').innerText = title;
@@ -429,8 +427,54 @@
             }, 10);
         };
 
+        window.showConfirm = function(title, message, onConfirm) {
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+            const modal = document.getElementById('confirmModal');
+            const box = document.getElementById('confirmBox');
+            
+            document.getElementById('confirmCancelBtn').onclick = () => window.closeModal('confirmModal');
+            document.getElementById('confirmOkBtn').onclick = () => {
+                window.closeModal('confirmModal');
+                if(onConfirm) onConfirm();
+            };
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        };
+
+        window.showPrompt = function(title, message, placeholder, onConfirm) {
+            document.getElementById('promptTitle').innerText = title;
+            document.getElementById('promptMessage').innerText = message;
+            const input = document.getElementById('promptInput');
+            input.placeholder = placeholder || '';
+            input.value = '';
+            
+            const modal = document.getElementById('promptModal');
+            const box = document.getElementById('promptBox');
+            
+            document.getElementById('promptCancelBtn').onclick = () => window.closeModal('promptModal');
+            document.getElementById('promptOkBtn').onclick = () => {
+                window.closeModal('promptModal');
+                if(onConfirm) onConfirm(input.value);
+            };
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+                input.focus();
+            }, 10);
+        };
+
         window.closeModal = function(modalId) {
             const modal = document.getElementById(modalId);
+            if (!modal) return;
             const box = modal.querySelector('div.bg-white, div.relative');
             
             modal.classList.add('opacity-0');
@@ -448,87 +492,44 @@
             }, 300);
         };
 
-        let confirmCallback = null;
-        window.showConfirmModal = function(title, message, callback) {
-            document.getElementById('confirmTitle').innerText = title;
-            document.getElementById('confirmMessage').innerHTML = message;
-            confirmCallback = callback;
-            
-            const modal = document.getElementById('confirmModal');
-            const box = document.getElementById('confirmBox');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                box.classList.remove('scale-95');
-                box.classList.add('scale-100');
-            }, 10);
-        };
-
-        window.closeConfirmModal = function(isConfirmed) {
-            const modal = document.getElementById('confirmModal');
-            const box = document.getElementById('confirmBox');
-            
-            modal.classList.add('opacity-0');
-            box.classList.remove('scale-100');
-            box.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                if (confirmCallback) {
-                    confirmCallback(isConfirmed);
-                    confirmCallback = null;
-                }
-            }, 300);
-        };
-
-        let promptCallback = null;
-        window.showPromptModal = function(title, message, placeholder, callback) {
-            document.getElementById('promptTitle').innerText = title;
-            document.getElementById('promptMessage').innerHTML = message;
-            document.getElementById('promptInput').placeholder = placeholder;
-            document.getElementById('promptInput').value = '';
-            promptCallback = callback;
-            
-            const modal = document.getElementById('promptModal');
-            const box = document.getElementById('promptBox');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                box.classList.remove('scale-95');
-                box.classList.add('scale-100');
-                document.getElementById('promptInput').focus();
-            }, 10);
-        };
-
-        window.closePromptModal = function(isConfirmed) {
-            const modal = document.getElementById('promptModal');
-            const box = document.getElementById('promptBox');
-            const inputValue = document.getElementById('promptInput').value.trim();
-            
-            modal.classList.add('opacity-0');
-            box.classList.remove('scale-100');
-            box.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                if (promptCallback) {
-                    promptCallback(isConfirmed ? inputValue : null);
-                    promptCallback = null;
-                }
-            }, 300);
-        };
-
+        // ==========================================
+        // Image Viewer & Robust Download Function
+        // ==========================================
         window.openImageViewer = function(src) {
             const modal = document.getElementById('imageViewerModal');
             document.getElementById('fullImageViewer').src = src;
             
+            // 강력한 사진 다운로드 로직 (PWA 및 모바일 브라우저 대응)
             document.getElementById('downloadImageBtn').onclick = () => {
-                const link = document.createElement('a');
-                link.href = src;
-                link.download = `수남매_사진_${Date.now()}.jpg`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                try {
+                    fetch(src)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.style.display = 'none';
+                            link.href = url;
+                            link.download = `수남매_인증사진_${Date.now()}.jpg`;
+                            document.body.appendChild(link);
+                            link.click();
+                            setTimeout(() => {
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(url);
+                            }, 200);
+                        })
+                        .catch(err => {
+                            console.error('Blob conversion failed, using direct href:', err);
+                            const link = document.createElement('a');
+                            link.href = src;
+                            link.download = `수남매_인증사진_${Date.now()}.jpg`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        });
+                } catch (error) {
+                    console.error(error);
+                    window.showModal('오류', '사진 다운로드 중 문제가 발생했습니다.');
+                }
             };
 
             modal.classList.remove('hidden');
@@ -553,7 +554,7 @@
         };
 
         // ==========================================
-        // UI Renderers
+        // UI Generator Functions
         // ==========================================
         function getHomeHTML() {
             return `
@@ -595,16 +596,20 @@
                     if(r.category === 'eng') typeBadge = '<span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">영어 도서</span>';
                     else if(r.category === 'kor') typeBadge = '<span class="text-xs font-bold px-2 py-0.5 rounded bg-green-100 text-green-700">한글 도서</span>';
                     else typeBadge = '<span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-700">기타 활동</span>';
+                    
+                    const dateStr = r.date || '날짜 없음';
 
                     return `
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 transition hover:shadow-md">
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <div class="font-bold text-gray-800 flex items-center gap-2">${window.state.learners[r.learnerId].name} ${typeBadge}</div>
-                                <div class="text-xs text-gray-400 font-medium mt-1"><i class="fa-regular fa-clock mr-1"></i>${r.date || '날짜 없음'}</div>
+                                <div class="text-xs text-gray-400 font-medium mt-1"><i class="fa-regular fa-clock mr-1"></i>${dateStr}</div>
                             </div>
                         </div>
-                        <div class="text-sm text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-100 mb-3 font-medium whitespace-pre-wrap">${r.detail}</div>
+                        <div class="text-sm text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-100 mb-3 font-medium">
+                            ${r.detail}
+                        </div>
                         ${r.image ? `
                         <div class="mb-3">
                             <img src="${r.image}" onclick="window.openImageViewer('${r.image}')" class="w-full h-24 object-cover rounded-lg border border-gray-200 cursor-pointer shadow-sm hover:opacity-90 transition">
@@ -800,6 +805,256 @@
             `;
         }
 
+        function getAdminHistoryHTML(learnerId) {
+            const l = window.state.learners[learnerId];
+            const myHistory = window.state.history.filter(h => h.learnerId === learnerId);
+            
+            let historyHTML = '';
+            if (myHistory.length === 0) {
+                historyHTML = `<div class="text-center text-gray-400 text-sm py-10 bg-white rounded-xl shadow-sm border border-gray-200">기록이 없습니다.</div>`;
+            } else {
+                historyHTML = myHistory.map((h) => {
+                    const isPos = h.points > 0 || h.amount > 0;
+                    const isNeg = h.points < 0 || h.amount < 0;
+                    const valueText = h.type === 'use' || h.type === 'coupon' 
+                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
+                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
+                    
+                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
+                    
+                    let typeBadge = '';
+                    if(h.type === 'merit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">상점/독서</span>';
+                    else if(h.type === 'demerit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600">벌점</span>';
+                    else if(h.type === 'coupon') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">쿠폰</span>';
+                    else typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">사용</span>';
+
+                    // 쿠폰 기록은 수동 삭제 불가 (재계산 시 자동 처리됨)
+                    const deleteBtnHTML = (h.type === 'coupon') ? '' : `
+                        <button onclick="window.revertHistoryRecord('${h.fbId}', '${learnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
+                            <i class="fa-solid fa-rotate-left mr-1"></i>삭제
+                        </button>
+                    `;
+
+                    return `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 flex justify-between items-center transition hover:shadow-md">
+                        <div class="flex-1 pr-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                ${typeBadge}
+                                <span class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date}</span>
+                            </div>
+                            <div class="font-bold text-gray-800 text-sm">${h.item}</div>
+                            <div class="text-xs text-gray-500 mt-1 line-clamp-2">${h.detail}</div>
+                            ${h.image ? `<div class="mt-2"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-16 h-16 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
+                        </div>
+                        <div class="flex flex-col items-end gap-1.5">
+                            <div class="font-black text-lg ${colorClass} whitespace-nowrap">${valueText}</div>
+                            ${deleteBtnHTML}
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+
+            return `
+                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
+                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('admin')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold text-gray-800">${l.name}의 기록 조회</h1>
+                        <button onclick="window.exportHistoryToCSV('${learnerId}')" class="text-emerald-600 hover:text-emerald-800 p-2 -mr-2 transition flex items-center justify-center bg-emerald-50 rounded-lg text-sm font-bold px-3 border border-emerald-100 shadow-sm" title="엑셀로 저장">
+                            <i class="fa-solid fa-file-excel mr-1.5"></i> 엑셀 저장
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-5 hide-scroll pb-10 w-full">
+                        <h2 class="text-sm font-bold text-gray-500 mb-3 flex items-center"><i class="fa-solid fa-clock-rotate-left mr-2"></i>전체 내역 (클라우드 동기화됨)</h2>
+                        ${historyHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getReadingListHTML(learnerId, fromAdmin = false) {
+            const l = window.state.learners[learnerId];
+            const readingHistory = window.state.history.filter(h => h.learnerId === learnerId && h.type === 'merit' && (h.item === '영어 도서' || h.item === '한글 도서'));
+            
+            let totalEng = readingHistory.filter(h => h.item === '영어 도서').length;
+            let totalKor = readingHistory.filter(h => h.item === '한글 도서').length;
+            
+            const monthlyStats = {};
+            readingHistory.forEach(h => {
+                const month = h.date.substring(0, 7);
+                if (!monthlyStats[month]) monthlyStats[month] = { eng: 0, kor: 0, total: 0 };
+                monthlyStats[month].total++;
+                if (h.item === '영어 도서') monthlyStats[month].eng++;
+                if (h.item === '한글 도서') monthlyStats[month].kor++;
+            });
+
+            let monthlyHTML = Object.keys(monthlyStats).sort((a,b) => b.localeCompare(a)).map(m => {
+                const parts = m.split('-');
+                return `
+                <div class="bg-gray-50 rounded-xl p-3 mb-2 border border-gray-100 flex justify-between items-center">
+                    <span class="font-bold text-gray-700 text-sm">${parts[0]}년 ${parseInt(parts[1])}월</span>
+                    <span class="text-xs font-medium text-gray-500">총 <strong class="text-indigo-600 text-sm">${monthlyStats[m].total}</strong>권 (영 ${monthlyStats[m].eng} / 한 ${monthlyStats[m].kor})</span>
+                </div>`;
+            }).join('');
+            
+            if (Object.keys(monthlyStats).length === 0) monthlyHTML = `<div class="text-center text-gray-400 text-sm py-4">아직 독서 기록이 없습니다.</div>`;
+
+            let listHTML = readingHistory.map(h => `
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 transition hover:shadow-md">
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date}</div>
+                        ${h.item === '영어 도서' ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">영어 도서</span>' : '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-600">한글 도서</span>'}
+                    </div>
+                    <div class="font-bold text-gray-800 text-sm mb-1">${h.detail}</div>
+                    ${h.image ? `<div class="mt-2"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-20 h-20 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
+                </div>
+            `).join('');
+
+            return `
+                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
+                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('${fromAdmin ? 'admin' : 'learner'}', {learnerId: '${learnerId}'})" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-book-open text-indigo-500 mr-2"></i>독서 기록장</h1>
+                        <button onclick="window.exportReadingListToCSV('${learnerId}')" class="text-indigo-600 hover:text-indigo-800 p-2 -mr-2 transition flex items-center justify-center bg-indigo-50 rounded-lg text-sm font-bold px-3 border border-indigo-100 shadow-sm" title="엑셀로 저장">
+                            <i class="fa-solid fa-file-excel mr-1.5"></i> 엑셀 저장
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-5 hide-scroll pb-10 w-full space-y-6">
+                        <section class="bg-indigo-600 text-white rounded-2xl p-5 shadow-md relative overflow-hidden">
+                            <i class="fa-solid fa-book-journal-whills absolute -right-4 -bottom-4 text-7xl opacity-20 transform -rotate-12"></i>
+                            <h2 class="text-xs font-bold text-indigo-200 mb-1 tracking-wider">${l.name}의 누적 독서량</h2>
+                            <div class="text-3xl font-black mb-3">${totalEng + totalKor} <span class="text-lg font-medium">권</span></div>
+                            <div class="flex gap-4">
+                                <div><span class="text-[10px] text-indigo-200 block mb-0.5">영어 도서</span><span class="font-bold">${totalEng}권</span></div>
+                                <div><span class="text-[10px] text-indigo-200 block mb-0.5">한글 도서</span><span class="font-bold">${totalKor}권</span></div>
+                            </div>
+                        </section>
+                        <section>
+                            <h3 class="text-sm font-bold text-gray-600 mb-3">월별 요약</h3>
+                            ${monthlyHTML}
+                        </section>
+                        <section>
+                            <h3 class="text-sm font-bold text-gray-600 mb-3">전체 기록</h3>
+                            ${listHTML}
+                        </section>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getAddPointHTML(defaultLearnerId = 'suweol') {
+            const today = new Date().toISOString().split('T')[0];
+            const myHistory = window.state.history.filter(h => h.learnerId === defaultLearnerId).slice(0, 5);
+            
+            let recentHistoryHTML = '';
+            if (myHistory.length === 0) {
+                recentHistoryHTML = `<div class="text-center text-gray-400 text-sm py-4 bg-gray-50 rounded-xl border border-gray-100">최근 부여된 기록이 없습니다.</div>`;
+            } else {
+                recentHistoryHTML = myHistory.map((h) => {
+                    const isPos = h.points > 0 || h.amount > 0;
+                    const isNeg = h.points < 0 || h.amount < 0;
+                    const valueText = h.type === 'use' || h.type === 'coupon' 
+                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
+                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
+                    
+                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
+                    let typeBadge = '';
+                    if(h.type === 'merit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">상점/독서</span>';
+                    else if(h.type === 'demerit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600">벌점</span>';
+                    else if(h.type === 'coupon') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">쿠폰</span>';
+                    else typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">사용</span>';
+
+                    const deleteBtnHTML = (h.type === 'coupon') ? '' : `
+                        <button onclick="window.revertHistoryRecord('${h.fbId}', '${defaultLearnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
+                            <i class="fa-solid fa-rotate-left mr-1"></i>삭제
+                        </button>
+                    `;
+
+                    return `
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 mb-2 flex justify-between items-center">
+                        <div class="flex-1 pr-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                ${typeBadge}
+                                <span class="text-[10px] text-gray-400 font-bold">${h.date || '날짜 없음'}</span>
+                            </div>
+                            <div class="font-bold text-gray-800 text-xs">${h.item}</div>
+                            <div class="text-[10px] text-gray-500 mt-0.5 line-clamp-1">${h.detail}</div>
+                        </div>
+                        <div class="flex flex-col items-end gap-1.5">
+                            <div class="font-black text-sm ${colorClass}">${valueText}</div>
+                            ${deleteBtnHTML}
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+
+            return `
+                <div class="flex flex-col h-full bg-white fade-in w-full">
+                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between border-b border-gray-100 sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('admin')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold text-gray-800">포인트 강제 부여</h1>
+                        <div class="w-8"></div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 hide-scroll pb-10 w-full">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">누구에게 주나요?</label>
+                                <select id="pointLearner" onchange="window.navigate('addPoint', {learnerId: this.value})" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
+                                    <option value="suweol" ${defaultLearnerId === 'suweol' ? 'selected' : ''}>👦 이수월</option>
+                                    <option value="suna" ${defaultLearnerId === 'suna' ? 'selected' : ''}>👧 이수나</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">분류</label>
+                                    <select id="pointCategory" onchange="window.updatePointFormUI()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
+                                        <option value="merit">상점 (+)</option>
+                                        <option value="demerit">벌점 (-)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">날짜</label>
+                                    <input type="date" id="pointDate" value="${today}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-700">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">항목</label>
+                                <select id="pointItem" onchange="window.updateCustomPointInput()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
+                                    <option value="eng">영어 도서 (+2)</option>
+                                    <option value="kor">한글 도서 (+1)</option>
+                                    <option value="custom">기타 상점 (직접입력)</option>
+                                </select>
+                            </div>
+                            <div id="customPointDiv" class="hidden animate-[fadeIn_0.2s_ease-out]">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">포인트 (숫자만 입력)</label>
+                                <input type="number" id="pointValue" placeholder="예: 3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">상세 내용 <span class="text-rose-500">*</span></label>
+                                <input type="text" id="pointDetail" placeholder="예: 해리포터 1권 완독" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
+                            </div>
+                            <div class="pt-2">
+                                <button id="adminPointSubmitBtn" onclick="window.submitAdminPointForm()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition transform active:scale-95 text-lg flex justify-center items-center">
+                                    <span id="adminPointSubmitText">적용하기 (실시간 반영)</span>
+                                    <i id="adminPointSubmitLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-gray-100 mt-8">
+                            <h3 class="text-sm font-bold text-gray-600 mb-3 flex items-center">
+                                <i class="fa-solid fa-clock-rotate-left text-indigo-400 mr-2"></i>방금 부여한 내역 (최근 5건)
+                            </h3>
+                            <div class="space-y-1">
+                                ${recentHistoryHTML}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function getLearnerHTML(learnerId) {
             const l = window.state.learners[learnerId];
             const isSuweol = learnerId === 'suweol';
@@ -918,535 +1173,110 @@
             `;
         }
 
-        function getAddPointHTML(defaultLearnerId = 'suweol') {
-            const today = new Date().toISOString().split('T')[0];
-            const myHistory = window.state.history.filter(h => h.learnerId === defaultLearnerId).slice(0, 5);
-            
-            let recentHistoryHTML = '';
-            if (myHistory.length === 0) {
-                recentHistoryHTML = `<div class="text-center text-gray-400 text-sm py-4 bg-gray-50 rounded-xl border border-gray-100">최근 부여된 기록이 없습니다.</div>`;
-            } else {
-                recentHistoryHTML = myHistory.map((h) => {
-                    const isPos = h.points > 0 || h.amount > 0;
-                    const isNeg = h.points < 0 || h.amount < 0;
-                    const valueText = h.type === 'use' || h.type === 'coupon' 
-                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
-                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
-                    
-                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
-                    let typeBadge = '';
-                    if(h.type === 'merit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">상점/독서</span>';
-                    else if(h.type === 'demerit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600">벌점</span>';
-                    else if(h.type === 'coupon') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">쿠폰</span>';
-                    else typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">사용</span>';
-
-                    const deleteBtnHTML = (h.type === 'coupon') ? '' : `
-                        <button onclick="window.revertHistoryRecord('${h.fbId}', '${defaultLearnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
-                            <i class="fa-solid fa-rotate-left mr-1"></i>삭제
-                        </button>
-                    `;
-
-                    return `
-                    <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 mb-2 flex justify-between items-center">
-                        <div class="flex-1 pr-2">
-                            <div class="flex items-center gap-2 mb-1">
-                                ${typeBadge}
-                                <span class="text-[10px] text-gray-400 font-bold">${h.date || '날짜 없음'}</span>
-                            </div>
-                            <div class="font-bold text-gray-800 text-xs">${h.item}</div>
-                            <div class="text-[10px] text-gray-500 mt-0.5 line-clamp-1">${h.detail}</div>
-                        </div>
-                        <div class="flex flex-col items-end gap-1.5">
-                            <div class="font-black text-sm ${colorClass}">${valueText}</div>
-                            ${deleteBtnHTML}
-                        </div>
-                    </div>
-                    `;
-                }).join('');
-            }
-
-            return `
-                <div class="flex flex-col h-full bg-white fade-in w-full">
-                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between border-b border-gray-100 sticky top-0 z-10 w-full">
-                        <button onclick="window.navigate('admin')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
-                        <h1 class="text-lg font-bold text-gray-800">포인트 강제 부여</h1>
-                        <div class="w-8"></div>
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-6 hide-scroll pb-10 w-full">
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">누구에게 주나요?</label>
-                                <select id="pointLearner" onchange="window.navigate('addPoint', {learnerId: this.value})" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
-                                    <option value="suweol" ${defaultLearnerId === 'suweol' ? 'selected' : ''}>👦 이수월</option>
-                                    <option value="suna" ${defaultLearnerId === 'suna' ? 'selected' : ''}>👧 이수나</option>
-                                </select>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">분류</label>
-                                    <select id="pointCategory" onchange="window.updatePointFormUI()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
-                                        <option value="merit">상점 (+)</option>
-                                        <option value="demerit">벌점 (-)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">날짜</label>
-                                    <input type="date" id="pointDate" value="${today}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-700">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">항목</label>
-                                <select id="pointItem" onchange="window.updateCustomPointInput()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
-                                    <option value="eng">영어 도서 (+2)</option>
-                                    <option value="kor">한글 도서 (+1)</option>
-                                    <option value="custom">기타 상점 (직접입력)</option>
-                                </select>
-                            </div>
-                            <div id="customPointDiv" class="hidden animate-[fadeIn_0.2s_ease-out]">
-                                <label class="block text-sm font-bold text-gray-700 mb-2">포인트 (숫자만 입력)</label>
-                                <input type="number" id="pointValue" placeholder="예: 3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">상세 내용 <span class="text-rose-500">*</span></label>
-                                <input type="text" id="pointDetail" placeholder="예: 해리포터 1권 완독" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
-                            </div>
-                            <div class="pt-2">
-                                <button id="adminPointSubmitBtn" onclick="window.submitAdminPointForm()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition transform active:scale-95 text-lg flex justify-center items-center">
-                                    <span id="adminPointSubmitText">적용하기 (실시간 반영)</span>
-                                    <i id="adminPointSubmitLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- 최근 부여 내역 확인 기능 추가 -->
-                        <div class="pt-6 border-t border-gray-100 mt-8">
-                            <h3 class="text-sm font-bold text-gray-600 mb-3 flex items-center">
-                                <i class="fa-solid fa-clock-rotate-left text-indigo-400 mr-2"></i>방금 부여한 내역 (최근 5건)
-                            </h3>
-                            <div class="space-y-1">
-                                ${recentHistoryHTML}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function getAdminHistoryHTML(learnerId) {
-            const l = window.state.learners[learnerId];
-            const myHistory = window.state.history.filter(h => h.learnerId === learnerId);
-            
-            let historyHTML = '';
-            if (myHistory.length === 0) {
-                historyHTML = `<div class="text-center text-gray-400 text-sm py-10 bg-white rounded-xl shadow-sm border border-gray-200">기록이 없습니다.</div>`;
-            } else {
-                historyHTML = myHistory.map((h) => {
-                    const isPos = h.points > 0 || h.amount > 0;
-                    const isNeg = h.points < 0 || h.amount < 0;
-                    const valueText = h.type === 'use' || h.type === 'coupon' 
-                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
-                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
-                    
-                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
-                    
-                    let typeBadge = '';
-                    if(h.type === 'merit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">상점/독서</span>';
-                    else if(h.type === 'demerit') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600">벌점</span>';
-                    else if(h.type === 'coupon') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">쿠폰</span>';
-                    else typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">사용</span>';
-
-                    const deleteBtnHTML = (h.type === 'coupon') ? '' : `
-                        <button onclick="window.revertHistoryRecord('${h.fbId}', '${learnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
-                            <i class="fa-solid fa-rotate-left mr-1"></i>삭제
-                        </button>
-                    `;
-
-                    return `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 flex justify-between items-center transition hover:shadow-md">
-                        <div class="flex-1 pr-2">
-                            <div class="flex items-center gap-2 mb-1">
-                                ${typeBadge}
-                                <span class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date || '날짜 없음'}</span>
-                            </div>
-                            <div class="font-bold text-gray-800 text-sm">${h.item}</div>
-                            <div class="text-xs text-gray-500 mt-1 line-clamp-2">${h.detail}</div>
-                            ${h.image ? `<div class="mt-2"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-16 h-16 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
-                        </div>
-                        <div class="flex flex-col items-end gap-1.5">
-                            <div class="font-black text-lg ${colorClass} whitespace-nowrap">${valueText}</div>
-                            ${deleteBtnHTML}
-                        </div>
-                    </div>
-                    `;
-                }).join('');
-            }
-
-            return `
-                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
-                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
-                        <button onclick="window.navigate('admin')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
-                        <h1 class="text-lg font-bold text-gray-800">${l.name}의 기록 조회</h1>
-                        <button onclick="window.exportHistoryToCSV('${learnerId}')" class="text-emerald-600 hover:text-emerald-800 p-2 -mr-2 transition flex items-center justify-center bg-emerald-50 rounded-lg text-sm font-bold px-3 border border-emerald-100 shadow-sm" title="엑셀로 저장">
-                            <i class="fa-solid fa-file-excel mr-1.5"></i> 엑셀 저장
-                        </button>
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-5 hide-scroll pb-10 w-full">
-                        <h2 class="text-sm font-bold text-gray-500 mb-3 flex items-center"><i class="fa-solid fa-clock-rotate-left mr-2"></i>전체 내역 (클라우드 동기화됨)</h2>
-                        ${historyHTML}
-                    </div>
-                </div>
-            `;
-        }
-
-        function getReadingListHTML(learnerId, fromAdmin = false) {
-            const l = window.state.learners[learnerId];
-            const readingHistory = window.state.history.filter(h => h.learnerId === learnerId && h.type === 'merit' && (h.item === '영어 도서' || h.item === '한글 도서'));
-            
-            let totalEng = readingHistory.filter(h => h.item === '영어 도서').length;
-            let totalKor = readingHistory.filter(h => h.item === '한글 도서').length;
-            
-            const monthlyStats = {};
-            readingHistory.forEach(h => {
-                const month = (h.date || '0000-00').substring(0, 7);
-                if (!monthlyStats[month]) monthlyStats[month] = { eng: 0, kor: 0, total: 0 };
-                monthlyStats[month].total++;
-                if (h.item === '영어 도서') monthlyStats[month].eng++;
-                if (h.item === '한글 도서') monthlyStats[month].kor++;
-            });
-
-            let monthlyHTML = Object.keys(monthlyStats).sort((a,b) => b.localeCompare(a)).map(m => {
-                const parts = m.split('-');
-                return `
-                <div class="bg-gray-50 rounded-xl p-3 mb-2 border border-gray-100 flex justify-between items-center">
-                    <span class="font-bold text-gray-700 text-sm">${parts[0]}년 ${parseInt(parts[1])}월</span>
-                    <span class="text-xs font-medium text-gray-500">총 <strong class="text-indigo-600 text-sm">${monthlyStats[m].total}</strong>권 (영 ${monthlyStats[m].eng} / 한 ${monthlyStats[m].kor})</span>
-                </div>`;
-            }).join('');
-            
-            if (Object.keys(monthlyStats).length === 0) monthlyHTML = `<div class="text-center text-gray-400 text-sm py-4">아직 독서 기록이 없습니다.</div>`;
-
-            let listHTML = readingHistory.map(h => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 transition hover:shadow-md">
-                    <div class="flex justify-between items-center mb-1">
-                        <div class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date || '날짜 없음'}</div>
-                        ${h.item === '영어 도서' ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">영어 도서</span>' : '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-600">한글 도서</span>'}
-                    </div>
-                    <div class="font-bold text-gray-800 text-sm mb-1">${h.detail}</div>
-                    ${h.image ? `<div class="mt-2"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-20 h-20 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
-                </div>
-            `).join('');
-
-            return `
-                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
-                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
-                        <button onclick="window.navigate('${fromAdmin ? 'admin' : 'learner'}', {learnerId: '${learnerId}'})" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
-                        <h1 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-book-open text-indigo-500 mr-2"></i>독서 기록장</h1>
-                        <button onclick="window.exportReadingListToCSV('${learnerId}')" class="text-indigo-600 hover:text-indigo-800 p-2 -mr-2 transition flex items-center justify-center bg-indigo-50 rounded-lg text-sm font-bold px-3 border border-indigo-100 shadow-sm" title="엑셀로 저장">
-                            <i class="fa-solid fa-file-excel mr-1.5"></i> 엑셀 저장
-                        </button>
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-5 hide-scroll pb-10 w-full space-y-6">
-                        <section class="bg-indigo-600 text-white rounded-2xl p-5 shadow-md relative overflow-hidden">
-                            <i class="fa-solid fa-book-journal-whills absolute -right-4 -bottom-4 text-7xl opacity-20 transform -rotate-12"></i>
-                            <h2 class="text-xs font-bold text-indigo-200 mb-1 tracking-wider">${l.name}의 누적 독서량</h2>
-                            <div class="text-3xl font-black mb-3">${totalEng + totalKor} <span class="text-lg font-medium">권</span></div>
-                            <div class="flex gap-4">
-                                <div><span class="text-[10px] text-indigo-200 block mb-0.5">영어 도서</span><span class="font-bold">${totalEng}권</span></div>
-                                <div><span class="text-[10px] text-indigo-200 block mb-0.5">한글 도서</span><span class="font-bold">${totalKor}권</span></div>
-                            </div>
-                        </section>
-                        <section>
-                            <h3 class="text-sm font-bold text-gray-600 mb-3">월별 요약</h3>
-                            ${monthlyHTML}
-                        </section>
-                        <section>
-                            <h3 class="text-sm font-bold text-gray-600 mb-3">전체 기록</h3>
-                            ${listHTML}
-                        </section>
-                    </div>
-                </div>
-            `;
-        }
-
         // ==========================================
-        // Core Business Logic
+        // Event Processing & Business Logic
         // ==========================================
         window.revertHistoryRecord = async function(fbId, learnerId) {
             const recordToDelete = window.state.history.find(r => r.fbId === fbId);
             if (!recordToDelete) return;
             
-            window.showConfirmModal(
-                '삭제 및 복구 확인', 
-                `[${recordToDelete.item}] 내역을 삭제하시겠습니까?\n삭제하시면 이후의 포인트와 쿠폰이 처음부터 정확하게 재계산되어 복구됩니다.`, 
-                async (confirmed) => {
-                    if (!confirmed) return;
+            window.showConfirm('기록 삭제', `[${recordToDelete.item}] 내역을 삭제하시겠습니까?\n관련된 포인트와 쿠폰이 처음부터 정확하게 재계산되어 복구됩니다.`, async () => {
+                try {
+                    // 삭제할 기록과 자동 생성된 쿠폰을 제외하고 사용자가 발생시킨 이벤트들만 뽑아서 과거부터 정렬
+                    const userEvents = window.state.history.filter(h => 
+                        h.learnerId === learnerId && 
+                        h.type !== 'coupon' && 
+                        h.fbId !== fbId
+                    ).sort((a, b) => a.id.localeCompare(b.id));
 
-                    try {
-                        // 1. 사용자가 발생시킨 모든 이벤트에서 '삭제할 기록'과 '자동 쿠폰 발급 기록' 제외 후 시간순 정렬
-                        const userEvents = window.state.history.filter(h => 
-                            h.learnerId === learnerId && 
-                            h.type !== 'coupon' && 
-                            h.fbId !== fbId
-                        ).sort((a, b) => a.id.localeCompare(b.id));
+                    // 학습자 상태 완전히 0으로 초기화
+                    const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
+                    l.points = { englishBooks: 0, koreanBooks: 0, customPoints: 0, totalPoints: 0 };
+                    l.coupons = { balance: 0, totalIssued: 0 };
 
-                        // 2. 학습자 상태 완전히 0으로 초기화
-                        const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
-                        l.points = { englishBooks: 0, koreanBooks: 0, customPoints: 0, totalPoints: 0 };
-                        l.coupons = { balance: 0, totalIssued: 0 };
+                    const newHistory = [];
 
-                        const newHistory = [];
+                    // 과거부터 순서대로 다시 이벤트를 부여하며 쿠폰 발급 여부를 재시뮬레이션
+                    for (const h of userEvents) {
+                        newHistory.push(h);
+                        
+                        if (h.type === 'use') {
+                            l.coupons.balance += h.amount; // amount가 마이너스 값이므로 더하면 차감됨
+                        } else if (h.type === 'merit' || h.type === 'demerit') {
+                            l.points.totalPoints += h.points;
+                            if (h.item === '영어 도서') l.points.englishBooks += 1;
+                            else if (h.item === '한글 도서') l.points.koreanBooks += 1;
+                            else if (h.type === 'merit' && h.item === '기타 활동') l.points.customPoints += h.points;
+                            else if (h.type === 'demerit' && h.item === '정리') l.points.customPoints += h.points;
+                            else if (h.type === 'demerit' && h.item === '숙제 미션') l.points.customPoints += h.points;
+                            else if (h.type === 'demerit' && h.item === '기타 벌점') l.points.customPoints += h.points;
 
-                        // 3. 과거부터 순서대로 다시 이벤트를 부여하며 점수 시뮬레이션
-                        for (const h of userEvents) {
-                            const newH = JSON.parse(JSON.stringify(h));
-                            newHistory.push(newH);
-                            
-                            if (newH.type === 'use') {
-                                l.coupons.balance += newH.amount; // amount가 마이너스이므로 더하면 차감됨
-                            } else if (newH.type === 'merit' || newH.type === 'demerit') {
-                                l.points.totalPoints += newH.points;
-                                
-                                if (newH.type === 'merit') {
-                                    if (newH.item === '영어 도서') l.points.englishBooks += 1;
-                                    else if (newH.item === '한글 도서') l.points.koreanBooks += 1;
-                                    else l.points.customPoints += newH.points;
-                                } else if (newH.type === 'demerit') {
-                                    l.points.customPoints += newH.points; 
-                                }
-
-                                // 점수 누적 후 쿠폰 발급 조건을 만족했는지 체크
-                                const result = window.calculateCoupons(l, learnerId);
-                                if (result.newHistories.length > 0) {
-                                    result.newHistories.forEach(nh => {
-                                        nh.date = newH.date; 
-                                        newHistory.push(nh);
-                                    });
-                                }
+                            // 점수 누적 후 쿠폰 발급 조건을 만족했는지 체크
+                            const { updatedLearner, newHistories } = window.calculateCoupons(l, learnerId);
+                            if (newHistories.length > 0) {
+                                newHistories.forEach(nh => {
+                                    nh.fbId = nh.id; 
+                                    newHistory.push(nh);
+                                });
                             }
                         }
+                    }
 
-                        // 4. 저장 로직 (Firebase Batch 오류 방지 위해 청크 단위 커밋)
-                        if (!isLocalMode) {
-                            let batch = writeBatch(db);
-                            let operationCount = 0;
-
-                            const commitAndResetBatch = async () => {
-                                await batch.commit();
-                                batch = writeBatch(db);
-                                operationCount = 0;
-                            };
-                            
-                            // 기존 전체 기록 안전하게 삭제
-                            const oldHistories = window.state.history.filter(h => h.learnerId === learnerId);
-                            for (const h of oldHistories) {
-                                batch.delete(doc(db, `${basePath}/history`, h.fbId));
-                                operationCount++;
-                                if (operationCount >= 450) await commitAndResetBatch();
-                            }
-
-                            // 재계산된 새로운 기록들 추가 (undefined 값으로 인한 에러 방지 위해 필터링)
-                            for (const h of newHistory) {
-                                const newRef = doc(collection(db, `${basePath}/history`));
-                                h.fbId = newRef.id;
-                                const cleanData = JSON.parse(JSON.stringify(h)); 
-                                batch.set(newRef, cleanData);
-                                operationCount++;
-                                if (operationCount >= 450) await commitAndResetBatch();
-                            }
-
-                            // 최종 학습자 상태 업데이트
-                            batch.update(doc(db, `${basePath}/learners`, learnerId), {
-                                points: l.points, coupons: l.coupons
-                            });
-
-                            await batch.commit();
-                        } else {
-                            window.state.learners[learnerId] = l;
-                            window.state.history = window.state.history.filter(h => h.learnerId !== learnerId);
-                            newHistory.forEach(h => {
-                                if (!h.fbId) h.fbId = h.id;
-                                window.state.history.unshift(h);
-                            });
-                            window.state.history.sort((a, b) => b.id.localeCompare(a.id));
-                            triggerRender();
-                        }
-
-                        window.showModal('복구 완료', '해당 내역이 삭제되고 포인트가 정상적으로 재계산되었습니다.', () => {
-                            triggerRender();
+                    if (!isLocalMode) {
+                        const batch = writeBatch(db);
+                        
+                        const oldHistories = window.state.history.filter(h => h.learnerId === learnerId);
+                        oldHistories.forEach(h => {
+                            batch.delete(doc(db, `${basePath}/history`, h.fbId));
                         });
-                    } catch(e) {
-                        console.error(e);
-                        window.showModal('오류', `재계산 중 문제가 발생했습니다.<br><span class="text-xs text-gray-400">${e.message}</span>`);
-                    }
-                }
-            );
-        };
 
-        window.calculateCoupons = function(l, learnerId) {
-            let issuedCount = 0;
-            let messages = [];
-            let gotSpecial = false;
-            let newHistories = [];
+                        newHistory.forEach(h => {
+                            const newRef = doc(collection(db, `${basePath}/history`));
+                            h.fbId = newRef.id;
+                            batch.set(newRef, h);
+                        });
 
-            if (learnerId === 'suweol') {
-                while (l.points.totalPoints >= 10 && l.points.englishBooks >= 3) {
-                    l.coupons.balance += 2000;
-                    l.coupons.totalIssued += 1;
-                    issuedCount++;
-                    
-                    l.points.totalPoints -= 10;
-                    l.points.englishBooks -= 3;
-                    
-                    let pointsToDeduct = 4;
-                    while(pointsToDeduct > 0) {
-                        if (l.points.koreanBooks > 0) { l.points.koreanBooks--; pointsToDeduct -= 1; }
-                        else if (l.points.customPoints > 0) { l.points.customPoints--; pointsToDeduct -= 1; }
-                        else if (l.points.englishBooks > 0) { 
-                            l.points.englishBooks--; pointsToDeduct -= 2; 
-                            if (pointsToDeduct < 0) { l.points.customPoints += 1; pointsToDeduct = 0; }
-                        } else { l.points.customPoints -= pointsToDeduct; pointsToDeduct = 0; }
-                    }
-                }
-                if (issuedCount > 0) {
-                    messages.push(`🎉 <b>축하합니다!</b><br>조건을 달성하여 2,000원 쿠폰이 ${issuedCount}장 발급되었습니다!<br><span class="text-xs text-indigo-600">(남은 이월 포인트는 유지됩니다)</span>`);
-                }
-            } else if (learnerId === 'suna') {
-                while (l.points.totalPoints >= 10) {
-                    l.coupons.balance += 2000;
-                    l.coupons.totalIssued += 1;
-                    issuedCount++;
-                    l.points.totalPoints -= 10;
-                    
-                    let pointsToDeduct = 10;
-                    while(pointsToDeduct > 0) {
-                        if (l.points.englishBooks > 0 && pointsToDeduct >= 2) { l.points.englishBooks--; pointsToDeduct -= 2; }
-                        else if (l.points.koreanBooks > 0) { l.points.koreanBooks--; pointsToDeduct -= 1; }
-                        else if (l.points.customPoints > 0) { l.points.customPoints--; pointsToDeduct -= 1; }
-                        else if (l.points.englishBooks > 0) { l.points.englishBooks--; l.points.customPoints += 1; pointsToDeduct = 0; }
-                        else { l.points.customPoints -= pointsToDeduct; pointsToDeduct = 0; }
+                        batch.update(doc(db, `${basePath}/learners`, learnerId), {
+                            points: l.points, coupons: l.coupons
+                        });
+
+                        await batch.commit();
+                    } else {
+                        window.state.learners[learnerId] = l;
+                        window.state.history = window.state.history.filter(h => h.learnerId !== learnerId);
+                        newHistory.forEach(h => {
+                            window.state.history.unshift(h);
+                        });
+                        window.state.history.sort((a, b) => b.id.localeCompare(a.id));
+                        triggerRender();
                     }
 
-                    if (l.coupons.totalIssued === 3) {
-                        l.coupons.balance += 2000;
-                        gotSpecial = true;
-                    }
-                }
-                
-                if (issuedCount > 0) {
-                    messages.push(`🎉 <b>축하합니다!</b><br>10포인트를 달성하여 2,000원 쿠폰이 ${issuedCount}장 발급되었습니다!`);
-                    if (gotSpecial) messages.push("🎁 <b>특별 미션 달성!</b><br>누적 3번 쿠폰 발급으로 특별 쿠폰 2,000원이 추가 지급되었습니다!");
-                }
-            }
-
-            if (issuedCount > 0) {
-                for(let i=0; i<issuedCount; i++) {
-                    const uniqueId = Date.now().toString() + Math.random().toString(36).substring(2, 8) + i; 
-                    newHistories.push({
-                        id: uniqueId, learnerId: learnerId, date: new Date().toISOString().split('T')[0],
-                        type: 'coupon', item: '쿠폰 발급 완료', points: 0, amount: 2000, detail: '목표 달성 자동 발급'
+                    window.showModal('복구 완료', '해당 내역이 완벽하게 삭제되고 포인트가 재계산되었습니다.', () => {
+                        triggerRender();
                     });
+                } catch(e) {
+                    console.error(e);
+                    window.showModal('오류', '재계산 중 문제가 발생했습니다.');
                 }
-                if (gotSpecial) {
-                     const uniqueSpId = Date.now().toString() + Math.random().toString(36).substring(2, 8) + 'sp'; 
-                     newHistories.push({
-                        id: uniqueSpId, learnerId: learnerId, date: new Date().toISOString().split('T')[0],
-                        type: 'coupon', item: '특별 쿠폰 발급', points: 0, amount: 2000, detail: '누적 3회 달성 보너스'
-                    });
-                }
-            }
-            return { updatedLearner: l, newHistories, msg: messages.join('<br><br>') };
-        };
-
-        window.processAddPoint = async function(learnerId, category, item, detail, date, customPointsValue, image = null) {
-            if (!detail) {
-                window.showModal('입력 오류', '상세 내용을 반드시 입력해주세요.');
-                return false;
-            }
-
-            let pointsToAdd = 0;
-            let pointTypeKey = ''; 
-            let logItemName = '';
-
-            if (category === 'merit') {
-                if (item === 'eng') { pointsToAdd = 2; pointTypeKey = 'englishBooks'; logItemName = '영어 도서'; }
-                else if (item === 'kor') { pointsToAdd = 1; pointTypeKey = 'koreanBooks'; logItemName = '한글 도서'; }
-                else if (item === 'custom') { 
-                    pointsToAdd = customPointsValue;
-                    if (pointsToAdd <= 0) { window.showModal('입력 오류', '기타 상점은 1 이상의 숫자를 입력하세요.'); return false; }
-                    pointTypeKey = 'customPoints'; logItemName = '기타 활동'; 
-                }
-            } else { 
-                if (item === 'cleanup') { pointsToAdd = -1; logItemName = '정리'; }
-                else if (item === 'hw') { pointsToAdd = -2; logItemName = '숙제 미션'; }
-                else if (item === 'custom') { 
-                    if (customPointsValue <= 0) { window.showModal('입력 오류', '기타 벌점은 1 이상의 숫자를 입력하세요.'); return false; }
-                    pointsToAdd = -customPointsValue; logItemName = '기타 벌점'; 
-                }
-            }
-
-            const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
-            l.points.totalPoints += pointsToAdd;
-            if (pointTypeKey === 'englishBooks' || pointTypeKey === 'koreanBooks') {
-                l.points[pointTypeKey] += 1;
-            } else if (pointTypeKey === 'customPoints') {
-                l.points[pointTypeKey] += pointsToAdd;
-            }
-
-            const historyRecords = [];
-            const mainRecordId = isLocalMode ? Date.now().toString() : doc(collection(db, `${basePath}/history`)).id;
-            
-            historyRecords.push({
-                id: Date.now().toString(),
-                fbId: mainRecordId,
-                learnerId: learnerId,
-                date: date,
-                type: category,
-                item: logItemName,
-                points: pointsToAdd,
-                detail: detail,
-                image: image || null // null 처리
             });
+        };
 
-            const { updatedLearner, newHistories, msg } = window.calculateCoupons(l, learnerId);
-            if (newHistories.length > 0) {
-                newHistories.forEach(nh => {
-                    nh.fbId = isLocalMode ? nh.id : doc(collection(db, `${basePath}/history`)).id;
-                    historyRecords.push(nh);
-                });
+        window.updatePointFormUI = function() {
+            const category = document.getElementById('pointCategory').value;
+            const itemSelect = document.getElementById('pointItem');
+            if (category === 'merit') {
+                itemSelect.innerHTML = `<option value="eng">영어 도서 (+2)</option><option value="kor">한글 도서 (+1)</option><option value="custom">기타 상점 (직접입력)</option>`;
+            } else {
+                itemSelect.innerHTML = `<option value="cleanup">정리 (-1)</option><option value="hw">숙제 미션 (-2)</option><option value="custom">기타 벌점 (직접입력)</option>`;
             }
+            window.updateCustomPointInput();
+        };
 
-            // 낙관적 UI 업데이트 (백그라운드 통신 전 화면 즉시 렌더링)
-            window.state.learners[learnerId] = updatedLearner;
-            for(const record of historyRecords) {
-                window.state.history.unshift(record);
-            }
-            triggerRender(); 
-
-            try {
-                if (!isLocalMode) {
-                    const batch = writeBatch(db);
-                    batch.update(doc(db, `${basePath}/learners`, learnerId), {
-                        points: updatedLearner.points,
-                        coupons: updatedLearner.coupons
-                    });
-                    
-                    for(const record of historyRecords) {
-                        const cleanData = JSON.parse(JSON.stringify(record));
-                        batch.set(doc(db, `${basePath}/history`, record.fbId), cleanData);
-                    }
-                    await batch.commit();
-                }
-
-                let finalMsg = `<b>${updatedLearner.name}</b>에게 처리되었습니다.`;
-                if (msg) finalMsg += '<br><br>' + msg; 
-                
-                // 모달 띄우지 않고 자연스럽게 진행
-                return true;
-            } catch(e) {
-                console.error(e);
-                window.showModal('오류', '데이터 저장 중 문제가 발생했습니다.');
-                return false;
-            }
+        window.updateCustomPointInput = function() {
+            const item = document.getElementById('pointItem').value;
+            const customDiv = document.getElementById('customPointDiv');
+            if (item === 'custom') customDiv.classList.remove('hidden');
+            else customDiv.classList.add('hidden');
         };
 
         window.submitAdminPointForm = async function() {
@@ -1465,8 +1295,6 @@
 
             try {
                 await window.processAddPoint(learnerId, category, item, detail, date, customPoints, null);
-                document.getElementById('pointDetail').value = '';
-                document.getElementById('pointValue').value = '';
             } catch (e) {
                 console.error(e);
             } finally {
@@ -1475,92 +1303,6 @@
             }
         };
 
-        window.approvePointRequest = async function(fbId) {
-            const req = window.state.pointRequests.find(r => r.fbId === fbId);
-            if (!req) return;
-            
-            if (req.category === 'custom') {
-                window.showPromptModal(
-                    '상점 포인트 부여',
-                    `[${req.detail}]\n이 기타 활동에 부여할 상점 포인트를 숫자로 입력하세요. (예: 1)`,
-                    '점수 (숫자만)',
-                    async (val) => {
-                        if (!val) return;
-                        const customPoints = parseInt(val);
-                        if (isNaN(customPoints) || customPoints <= 0) {
-                            window.showModal('입력 오류', '올바른 포인트를 입력하세요.');
-                            return;
-                        }
-                        await executeApprovePointReq(req, fbId, customPoints);
-                    }
-                );
-            } else {
-                await executeApprovePointReq(req, fbId, 0);
-            }
-        };
-
-        async function executeApprovePointReq(req, fbId, customPoints) {
-            try {
-                // 낙관적 삭제
-                window.state.pointRequests = window.state.pointRequests.filter(r => r.fbId !== fbId);
-                triggerRender();
-                
-                const success = await window.processAddPoint(req.learnerId, 'merit', req.category, req.detail, req.date, customPoints, req.image);
-                if (success && !isLocalMode) {
-                    await deleteDoc(doc(db, `${basePath}/pointRequests`, fbId));
-                }
-            } catch(e) {
-                console.error(e);
-            }
-        }
-
-        window.rejectPointRequest = async function(fbId) {
-            try {
-                window.state.pointRequests = window.state.pointRequests.filter(r => r.fbId !== fbId);
-                triggerRender();
-                if (!isLocalMode) {
-                    await deleteDoc(doc(db, `${basePath}/pointRequests`, fbId));
-                }
-            } catch(e) {
-                console.error(e);
-            }
-        };
-
-        window.approveRequest = async function(fbId) {
-            const req = window.state.requests.find(r => r.fbId === fbId);
-            if (!req) return;
-            
-            try {
-                const l = window.state.learners[req.learnerId];
-                const newBalance = l.coupons.balance - req.amount;
-                
-                const newHistDocId = isLocalMode ? Date.now().toString() : doc(collection(db, `${basePath}/history`)).id;
-                const histData = {
-                    id: Date.now().toString(), fbId: newHistDocId, learnerId: req.learnerId, date: new Date().toISOString().split('T')[0],
-                    type: 'use', item: '용돈 지급 완료', points: 0, amount: -req.amount, detail: '부모님 확인 후 지급'
-                };
-
-                // 낙관적 업데이트
-                window.state.requests = window.state.requests.filter(r => r.fbId !== fbId);
-                window.state.learners[req.learnerId].coupons.balance = newBalance;
-                window.state.history.unshift(histData);
-                triggerRender();
-
-                if (!isLocalMode) {
-                    const batch = writeBatch(db);
-                    batch.delete(doc(db, `${basePath}/moneyRequests`, fbId));
-                    batch.update(doc(db, `${basePath}/learners`, req.learnerId), { 'coupons.balance': newBalance });
-                    batch.set(doc(db, `${basePath}/history`, newHistDocId), histData);
-                    await batch.commit();
-                }
-
-                window.showModal('지급 완료', `<b>${l.name}</b>에게 ${req.amount.toLocaleString()}원 지급 처리가 완료되었습니다.`);
-            } catch(e) {
-                console.error(e);
-            }
-        };
-
-        // 데이터 초기화 및 기타 유틸 함수들
         window.exportHistoryToCSV = function(learnerId) {
             const l = window.state.learners[learnerId];
             const myHistory = window.state.history.filter(h => h.learnerId === learnerId).sort((a,b) => a.id.localeCompare(b.id));
@@ -1618,18 +1360,13 @@
         };
 
         window.confirmResetData = function() {
-            window.showPromptModal(
-                '데이터 전체 초기화', 
-                '⚠️ 경고: 모든 포인트, 쿠폰, 전체 기록이 복구할 수 없게 영구적으로 삭제됩니다.\n\n정말 초기화하시려면 아래에 <span class="font-black text-rose-500">초기화</span> 라고 입력해주세요.',
-                '초기화',
-                (word) => {
-                    if (word === '초기화') {
-                        window.resetAllData();
-                    } else if (word !== null) {
-                        window.showModal('취소됨', '입력한 단어가 일치하지 않아 데이터 초기화가 취소되었습니다.');
-                    }
+            window.showPrompt('데이터 초기화', '⚠️ 경고: 모든 포인트, 쿠폰, 전체 기록이 영구적으로 삭제됩니다.\n\n정말 초기화하시려면 아래에 "초기화"라고 똑같이 입력해주세요.', '초기화', (word) => {
+                if (word === '초기화') {
+                    window.resetAllData();
+                } else {
+                    window.showModal('취소됨', '입력한 단어가 일치하지 않아 데이터 초기화가 취소되었습니다.');
                 }
-            );
+            });
         };
 
         window.resetAllData = async function() {
@@ -1665,70 +1402,6 @@
             } catch(e) {
                 console.error(e);
                 window.showModal('오류', '초기화 중 문제가 발생했습니다.');
-            }
-        };
-
-        // ==========================================
-        // Missing UI Helpers
-        // ==========================================
-        window.openAnnouncementModal = function() {
-            document.getElementById('announcementText').value = '';
-            const modal = document.getElementById('announcementModal');
-            const box = document.getElementById('announcementBox');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                box.classList.remove('scale-95');
-                box.classList.add('scale-100');
-                document.getElementById('announcementText').focus();
-            }, 10);
-        };
-
-        window.openRequestModal = function(learnerId) {
-            document.getElementById('inputValue').value = '';
-            const modal = document.getElementById('inputModal');
-            const box = document.getElementById('inputBox');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                box.classList.remove('scale-95');
-                box.classList.add('scale-100');
-                document.getElementById('inputValue').focus();
-            }, 10);
-            
-            document.getElementById('inputConfirmBtn').onclick = function() {
-                window.submitMoneyRequest(learnerId);
-            };
-        };
-
-        window.updatePointFormUI = function() {
-            const category = document.getElementById('pointCategory').value;
-            const itemSelect = document.getElementById('pointItem');
-            
-            if (category === 'merit') {
-                itemSelect.innerHTML = `
-                    <option value="eng">영어 도서 (+2)</option>
-                    <option value="kor">한글 도서 (+1)</option>
-                    <option value="custom">기타 상점 (직접입력)</option>
-                `;
-            } else {
-                itemSelect.innerHTML = `
-                    <option value="cleanup">정리 안함 (-1)</option>
-                    <option value="hw">숙제 미완료 (-2)</option>
-                    <option value="custom">기타 벌점 (직접입력)</option>
-                `;
-            }
-            window.updateCustomPointInput();
-        };
-
-        window.updateCustomPointInput = function() {
-            const item = document.getElementById('pointItem').value;
-            const customDiv = document.getElementById('customPointDiv');
-            if (item === 'custom') {
-                customDiv.classList.remove('hidden');
-            } else {
-                customDiv.classList.add('hidden');
-                document.getElementById('pointValue').value = '';
             }
         };
 
@@ -1791,10 +1464,8 @@
             btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
 
             try {
-                const newDocId = isLocalMode ? Date.now().toString() : doc(collection(db, `${basePath}/pointRequests`)).id;
                 const reqData = {
                     id: Date.now().toString(),
-                    fbId: newDocId,
                     learnerId: learnerId,
                     category: item,
                     detail: detail,
@@ -1802,11 +1473,12 @@
                     date: new Date().toISOString().split('T')[0]
                 };
 
-                window.state.pointRequests.unshift(reqData);
-                triggerRender();
-
                 if (!isLocalMode) {
-                    await setDoc(doc(db, `${basePath}/pointRequests`, newDocId), reqData);
+                    await addDoc(collection(db, `${basePath}/pointRequests`), reqData);
+                } else {
+                    reqData.fbId = reqData.id;
+                    window.state.pointRequests.unshift(reqData);
+                    triggerRender();
                 }
 
                 window.closeModal('pointReqModal');
@@ -1819,47 +1491,12 @@
             }
         };
 
-        window.submitMoneyRequest = async function(learnerId) {
-            const val = parseInt(document.getElementById('inputValue').value);
-            if(isNaN(val) || val <= 0) {
-                window.showModal('입력 오류', '올바른 금액을 입력하세요.');
-                return;
-            }
-
-            const l = window.state.learners[learnerId];
-            if (val > l.coupons.balance) {
-                window.showModal('잔액 부족', `신청 금액이 보유 잔액(${l.coupons.balance.toLocaleString()}원)보다 많습니다.`);
-                return;
-            }
-
-            const btnText = document.getElementById('inputConfirmText');
-            const btnLoader = document.getElementById('inputConfirmLoader');
-            btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
-
-            try {
-                const newDocId = isLocalMode ? Date.now().toString() : doc(collection(db, `${basePath}/moneyRequests`)).id;
-                const reqData = {
-                    id: Date.now().toString(),
-                    fbId: newDocId,
-                    learnerId: learnerId,
-                    amount: val,
-                    date: new Date().toISOString().split('T')[0]
-                };
-
-                window.state.requests.unshift(reqData);
-                triggerRender();
-
-                if (!isLocalMode) {
-                    await setDoc(doc(db, `${basePath}/moneyRequests`, newDocId), reqData);
-                }
-
-                window.closeModal('inputModal');
-                setTimeout(() => window.showModal('신청 완료!', '부모님께 용돈 지급 신청을 보냈습니다.'), 300);
-            } catch(e) {
-                console.error(e);
-            } finally {
-                btnText.classList.remove('hidden'); btnLoader.classList.add('hidden');
-            }
+        window.openAnnouncementModal = function() {
+            const modal = document.getElementById('announcementModal');
+            const box = document.getElementById('announcementBox');
+            document.getElementById('announcementText').value = '';
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); document.getElementById('announcementText').focus(); }, 10);
         };
 
         window.submitAnnouncement = async function() {
@@ -1871,25 +1508,25 @@
             btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
 
             try {
-                const newDocId = isLocalMode ? Date.now().toString() : doc(collection(db, `${basePath}/announcements`)).id;
                 const noticeData = {
                     id: Date.now().toString(),
-                    fbId: newDocId,
                     message: text,
                     date: new Date().toISOString().split('T')[0]
                 };
 
-                window.state.announcements.unshift(noticeData);
-                triggerRender();
-
                 if (!isLocalMode) {
-                    await setDoc(doc(db, `${basePath}/announcements`, newDocId), noticeData);
+                    await addDoc(collection(db, `${basePath}/announcements`), noticeData);
+                } else {
+                    noticeData.fbId = noticeData.id;
+                    window.state.announcements.unshift(noticeData);
+                    triggerRender();
                 }
 
                 window.closeModal('announcementModal');
                 setTimeout(() => window.showModal('등록 완료', '아이들 화면에 새 공지사항이 등록되었습니다.'), 300);
             } catch(e) {
                 console.error(e);
+                window.showModal('오류', '공지사항 등록에 실패했습니다.');
             } finally {
                 btnText.classList.remove('hidden'); btnLoader.classList.add('hidden');
             }
@@ -1908,8 +1545,199 @@
             }
         };
 
+        window.approvePointRequest = async function(fbId) {
+            const req = window.state.pointRequests.find(r => r.fbId === fbId);
+            if (!req) return;
+            
+            if (req.category === 'custom') {
+                window.showPrompt('점수 부여', '기타 활동입니다. 몇 점을 부여하시겠습니까? (숫자만 입력)', '예: 3', async (val) => {
+                    const pts = parseInt(val);
+                    if (isNaN(pts) || pts <= 0) {
+                        window.showModal('입력 오류', '올바른 숫자를 입력하세요.');
+                        return;
+                    }
+                    const success = await window.processAddPoint(req.learnerId, 'merit', req.category, req.detail, req.date, pts, req.image);
+                    if (success) {
+                        if (!isLocalMode) await deleteDoc(doc(db, `${basePath}/pointRequests`, fbId));
+                        else {
+                            window.state.pointRequests = window.state.pointRequests.filter(r => r.fbId !== fbId);
+                            triggerRender();
+                        }
+                    }
+                });
+            } else {
+                const success = await window.processAddPoint(req.learnerId, 'merit', req.category, req.detail, req.date, 0, req.image);
+                if (success) {
+                    if (!isLocalMode) await deleteDoc(doc(db, `${basePath}/pointRequests`, fbId));
+                    else {
+                        window.state.pointRequests = window.state.pointRequests.filter(r => r.fbId !== fbId);
+                        triggerRender();
+                    }
+                }
+            }
+        };
+
+        window.processAddPoint = async function(learnerId, category, item, detail, date, customPointsValue, image = null) {
+            if (!detail) {
+                window.showModal('입력 오류', '상세 내용을 반드시 입력해주세요.');
+                return false;
+            }
+
+            let pointsToAdd = 0;
+            let pointTypeKey = ''; 
+            let logItemName = '';
+
+            if (category === 'merit') {
+                if (item === 'eng') { pointsToAdd = 2; pointTypeKey = 'englishBooks'; logItemName = '영어 도서'; }
+                else if (item === 'kor') { pointsToAdd = 1; pointTypeKey = 'koreanBooks'; logItemName = '한글 도서'; }
+                else if (item === 'custom') { 
+                    pointsToAdd = customPointsValue;
+                    if (pointsToAdd <= 0) { window.showModal('입력 오류', '기타 상점은 1 이상의 숫자를 입력하세요.'); return false; }
+                    pointTypeKey = 'customPoints'; logItemName = '기타 활동'; 
+                }
+            } else { 
+                if (item === 'cleanup') { pointsToAdd = -1; logItemName = '정리'; }
+                else if (item === 'hw') { pointsToAdd = -2; logItemName = '숙제 미션'; }
+                else if (item === 'custom') { 
+                    if (customPointsValue <= 0) { window.showModal('입력 오류', '기타 벌점은 1 이상의 숫자를 입력하세요.'); return false; }
+                    pointsToAdd = -customPointsValue; logItemName = '기타 벌점'; 
+                }
+            }
+
+            const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
+            l.points.totalPoints += pointsToAdd;
+            if (pointTypeKey === 'englishBooks' || pointTypeKey === 'koreanBooks') {
+                l.points[pointTypeKey] += 1;
+            } else if (pointTypeKey === 'customPoints') {
+                l.points[pointTypeKey] += pointsToAdd;
+            }
+
+            const historyRecords = [];
+            
+            historyRecords.push({
+                id: Date.now().toString(),
+                learnerId: learnerId,
+                date: date,
+                type: category,
+                item: logItemName,
+                points: pointsToAdd,
+                detail: detail,
+                image: image
+            });
+
+            const { updatedLearner, newHistories, msg } = window.calculateCoupons(l, learnerId);
+            if (newHistories.length > 0) {
+                historyRecords.push(...newHistories);
+            }
+
+            try {
+                if (!isLocalMode) {
+                    await updateDoc(doc(db, `${basePath}/learners`, learnerId), {
+                        points: updatedLearner.points,
+                        coupons: updatedLearner.coupons
+                    });
+                    
+                    for(const record of historyRecords) {
+                        await addDoc(collection(db, `${basePath}/history`), record);
+                    }
+                } else {
+                    window.state.learners[learnerId] = updatedLearner;
+                    for(const record of historyRecords) {
+                        record.fbId = record.id;
+                        window.state.history.unshift(record);
+                    }
+                    triggerRender();
+                }
+
+                let finalMsg = `<b>${updatedLearner.name}</b>에게 포인트가 성공적으로 처리되었습니다.`;
+                if (msg) finalMsg += '<br><br>' + msg; 
+
+                window.showModal('승인 및 처리 완료', finalMsg, () => {
+                    triggerRender();
+                });
+                return true;
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '저장 중 문제가 발생했습니다.');
+                return false;
+            }
+        };
+
+        window.calculateCoupons = function(l, learnerId) {
+            let issuedCount = 0;
+            let messages = [];
+            let gotSpecial = false;
+            let newHistories = [];
+
+            if (learnerId === 'suweol') {
+                while (l.points.totalPoints >= 10 && l.points.englishBooks >= 3) {
+                    l.coupons.balance += 2000;
+                    l.coupons.totalIssued += 1;
+                    issuedCount++;
+                    
+                    l.points.totalPoints -= 10;
+                    l.points.englishBooks -= 3;
+                    
+                    let pointsToDeduct = 4;
+                    while(pointsToDeduct > 0) {
+                        if (l.points.koreanBooks > 0) { l.points.koreanBooks--; pointsToDeduct -= 1; }
+                        else if (l.points.customPoints > 0) { l.points.customPoints--; pointsToDeduct -= 1; }
+                        else if (l.points.englishBooks > 0) { 
+                            l.points.englishBooks--; pointsToDeduct -= 2; 
+                            if (pointsToDeduct < 0) { l.points.customPoints += 1; pointsToDeduct = 0; }
+                        } else { l.points.customPoints -= pointsToDeduct; pointsToDeduct = 0; }
+                    }
+                }
+                if (issuedCount > 0) {
+                    messages.push(`🎉 <b>축하합니다!</b><br>조건을 달성하여 2,000원 쿠폰이 ${issuedCount}장 발급되었습니다!<br><span class="text-xs text-indigo-600">(남은 이월 포인트는 유지됩니다)</span>`);
+                }
+            } else if (learnerId === 'suna') {
+                while (l.points.totalPoints >= 10) {
+                    l.coupons.balance += 2000;
+                    l.coupons.totalIssued += 1;
+                    issuedCount++;
+                    l.points.totalPoints -= 10;
+                    
+                    let pointsToDeduct = 10;
+                    while(pointsToDeduct > 0) {
+                        if (l.points.englishBooks > 0 && pointsToDeduct >= 2) { l.points.englishBooks--; pointsToDeduct -= 2; }
+                        else if (l.points.koreanBooks > 0) { l.points.koreanBooks--; pointsToDeduct -= 1; }
+                        else if (l.points.customPoints > 0) { l.points.customPoints--; pointsToDeduct -= 1; }
+                        else if (l.points.englishBooks > 0) { l.points.englishBooks--; l.points.customPoints += 1; pointsToDeduct = 0; }
+                        else { l.points.customPoints -= pointsToDeduct; pointsToDeduct = 0; }
+                    }
+
+                    if (l.coupons.totalIssued === 3) {
+                        l.coupons.balance += 2000;
+                        gotSpecial = true;
+                    }
+                }
+                
+                if (issuedCount > 0) {
+                    messages.push(`🎉 <b>축하합니다!</b><br>10포인트를 달성하여 2,000원 쿠폰이 ${issuedCount}장 발급되었습니다!`);
+                    if (gotSpecial) messages.push("🎁 <b>특별 미션 달성!</b><br>누적 3번 쿠폰 발급으로 특별 쿠폰 2,000원이 추가 지급되었습니다!");
+                }
+            }
+
+            if (issuedCount > 0) {
+                for(let i=0; i<issuedCount; i++) {
+                    newHistories.push({
+                        id: Date.now().toString() + i, learnerId: learnerId, date: new Date().toISOString().split('T')[0],
+                        type: 'coupon', item: '쿠폰 발급 완료', points: 0, amount: 2000, detail: '목표 달성 자동 발급'
+                    });
+                }
+                if (gotSpecial) {
+                     newHistories.push({
+                        id: Date.now().toString() + 'sp', learnerId: learnerId, date: new Date().toISOString().split('T')[0],
+                        type: 'coupon', item: '특별 쿠폰 발급', points: 0, amount: 2000, detail: '누적 3회 달성 보너스'
+                    });
+                }
+            }
+            return { updatedLearner: l, newHistories, msg: messages.join('<br><br>') };
+        };
+
         // ==========================================
-        // Auth & Security Settings Management (복구된 영역)
+        // Auth & Security Settings Management
         // ==========================================
         window.openAdminAuth = function() {
             document.getElementById('adminPasswordInput').value = '';
@@ -1944,8 +1772,6 @@
             window.closeModal('passwordModal');
             setTimeout(() => {
                 document.getElementById('securityAnswerInput').value = '';
-                
-                // Load dynamic security question
                 const currentQuestion = window.state.admin.securityQuestion || '우리의 신혼 여행지는?';
                 document.getElementById('displaySecurityQuestion').innerText = `Q. ${currentQuestion}`;
                 
@@ -1993,8 +1819,6 @@
         window.openChangePassword = function() {
             document.getElementById('currentPasswordInput').value = '';
             document.getElementById('newPasswordInput').value = '';
-            
-            // Load current security question & answer into inputs
             document.getElementById('newSecurityQuestionInput').value = window.state.admin.securityQuestion || '우리의 신혼 여행지는?';
             document.getElementById('newSecurityAnswerInput').value = window.state.admin.securityAnswer || '발리';
             
@@ -2027,7 +1851,7 @@
                 return;
             }
 
-            const finalPw = newPw || curPw; // If new password is blank, keep current
+            const finalPw = newPw || curPw;
 
             const btnText = document.getElementById('changePwText');
             const btnLoader = document.getElementById('changePwLoader');
