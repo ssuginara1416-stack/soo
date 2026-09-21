@@ -1668,7 +1668,69 @@
             }
         };
 
-        // ... (나머지 회원/관리자/모달 로직 등 유지)
+        // ==========================================
+        // Missing UI Helpers
+        // ==========================================
+        window.openAnnouncementModal = function() {
+            document.getElementById('announcementText').value = '';
+            const modal = document.getElementById('announcementModal');
+            const box = document.getElementById('announcementBox');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+                document.getElementById('announcementText').focus();
+            }, 10);
+        };
+
+        window.openRequestModal = function(learnerId) {
+            document.getElementById('inputValue').value = '';
+            const modal = document.getElementById('inputModal');
+            const box = document.getElementById('inputBox');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+                document.getElementById('inputValue').focus();
+            }, 10);
+            
+            document.getElementById('inputConfirmBtn').onclick = function() {
+                window.submitMoneyRequest(learnerId);
+            };
+        };
+
+        window.updatePointFormUI = function() {
+            const category = document.getElementById('pointCategory').value;
+            const itemSelect = document.getElementById('pointItem');
+            
+            if (category === 'merit') {
+                itemSelect.innerHTML = `
+                    <option value="eng">영어 도서 (+2)</option>
+                    <option value="kor">한글 도서 (+1)</option>
+                    <option value="custom">기타 상점 (직접입력)</option>
+                `;
+            } else {
+                itemSelect.innerHTML = `
+                    <option value="cleanup">정리 안함 (-1)</option>
+                    <option value="hw">숙제 미완료 (-2)</option>
+                    <option value="custom">기타 벌점 (직접입력)</option>
+                `;
+            }
+            window.updateCustomPointInput();
+        };
+
+        window.updateCustomPointInput = function() {
+            const item = document.getElementById('pointItem').value;
+            const customDiv = document.getElementById('customPointDiv');
+            if (item === 'custom') {
+                customDiv.classList.remove('hidden');
+            } else {
+                customDiv.classList.add('hidden');
+                document.getElementById('pointValue').value = '';
+            }
+        };
 
         window.openPointReqModal = function(learnerId) {
             document.getElementById('reqLearnerId').value = learnerId;
@@ -1835,11 +1897,156 @@
 
         window.deleteAnnouncement = async function(fbId) {
             try {
-                if (!isLocalMode) await deleteDoc(doc(db, `${basePath}/announcements`, fbId));
-                window.state.announcements = window.state.announcements.filter(a => a.fbId !== fbId);
-                triggerRender();
+                if (!isLocalMode) {
+                    await deleteDoc(doc(db, `${basePath}/announcements`, fbId));
+                } else {
+                    window.state.announcements = window.state.announcements.filter(a => a.fbId !== fbId);
+                    triggerRender();
+                }
             } catch(e) {
                 console.error(e);
+            }
+        };
+
+        // ==========================================
+        // Auth & Security Settings Management (복구된 영역)
+        // ==========================================
+        window.openAdminAuth = function() {
+            document.getElementById('adminPasswordInput').value = '';
+            const modal = document.getElementById('passwordModal');
+            const box = document.getElementById('passwordBox');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+                document.getElementById('adminPasswordInput').focus();
+            }, 10);
+        };
+
+        window.verifyAdminPassword = function() {
+            const inputPw = document.getElementById('adminPasswordInput').value;
+            const currentPw = window.state.admin.password;
+            
+            if (inputPw === currentPw) {
+                sessionStorage.setItem('adminAuthed', 'true');
+                window.closeModal('passwordModal');
+                setTimeout(() => {
+                    window.navigate('admin');
+                }, 300);
+            } else {
+                window.showModal('인증 실패', '비밀번호가 일치하지 않습니다.');
+                document.getElementById('adminPasswordInput').value = '';
+            }
+        };
+
+        window.openFindPassword = function() {
+            window.closeModal('passwordModal');
+            setTimeout(() => {
+                document.getElementById('securityAnswerInput').value = '';
+                
+                // Load dynamic security question
+                const currentQuestion = window.state.admin.securityQuestion || '우리의 신혼 여행지는?';
+                document.getElementById('displaySecurityQuestion').innerText = `Q. ${currentQuestion}`;
+                
+                const modal = document.getElementById('findPasswordModal');
+                const box = document.getElementById('findPasswordBox');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    box.classList.remove('scale-95');
+                    box.classList.add('scale-100');
+                    document.getElementById('securityAnswerInput').focus();
+                }, 10);
+            }, 300);
+        };
+
+        window.verifySecurityAnswer = async function() {
+            const answer = document.getElementById('securityAnswerInput').value.trim();
+            const expectedAnswer = window.state.admin.securityAnswer || "발리";
+
+            if (answer !== expectedAnswer) {
+                window.showModal('오류', '정답이 일치하지 않습니다. 다시 시도해주세요.');
+                return;
+            }
+
+            const btnText = document.getElementById('resetPwText');
+            const btnLoader = document.getElementById('resetPwLoader');
+            btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
+
+            try {
+                const currentPw = window.state.admin.password;
+                window.closeModal('findPasswordModal');
+                setTimeout(() => {
+                    window.showModal('정답입니다!', `현재 관리자 비밀번호는 <br><br><span class="text-2xl font-black text-indigo-600 tracking-widest">[ ${currentPw} ]</span><br><br> 입니다.`, () => {
+                        window.openAdminAuth();
+                    });
+                }, 300);
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '처리 중 문제가 발생했습니다.');
+            } finally {
+                btnText.classList.remove('hidden'); btnLoader.classList.add('hidden');
+            }
+        };
+
+        window.openChangePassword = function() {
+            document.getElementById('currentPasswordInput').value = '';
+            document.getElementById('newPasswordInput').value = '';
+            
+            // Load current security question & answer into inputs
+            document.getElementById('newSecurityQuestionInput').value = window.state.admin.securityQuestion || '우리의 신혼 여행지는?';
+            document.getElementById('newSecurityAnswerInput').value = window.state.admin.securityAnswer || '발리';
+            
+            const modal = document.getElementById('changePasswordModal');
+            const box = document.getElementById('changePasswordBox');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        };
+
+        window.changeAdminSettings = async function() {
+            const curPw = document.getElementById('currentPasswordInput').value;
+            const newPw = document.getElementById('newPasswordInput').value;
+            const newQ = document.getElementById('newSecurityQuestionInput').value.trim();
+            const newA = document.getElementById('newSecurityAnswerInput').value.trim();
+
+            if (curPw !== window.state.admin.password) {
+                window.showModal('오류', '현재 비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            if (newPw && newPw.length < 4) {
+                window.showModal('오류', '새 비밀번호는 4자리 이상이어야 합니다.');
+                return;
+            }
+            if (!newQ || !newA) {
+                window.showModal('오류', '보안 질문과 정답을 비워둘 수 없습니다.');
+                return;
+            }
+
+            const finalPw = newPw || curPw; // If new password is blank, keep current
+
+            const btnText = document.getElementById('changePwText');
+            const btnLoader = document.getElementById('changePwLoader');
+            btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
+
+            try {
+                const newData = { password: finalPw, securityQuestion: newQ, securityAnswer: newA };
+                if (!isLocalMode) {
+                    await updateDoc(doc(db, `${basePath}/config/admin`), newData);
+                } else {
+                    window.state.admin = { ...window.state.admin, ...newData };
+                }
+                window.closeModal('changePasswordModal');
+                setTimeout(() => window.showModal('변경 완료', '설정이 성공적으로 변경 및 저장되었습니다.'), 300);
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '변경 중 문제가 발생했습니다.');
+            } finally {
+                btnText.classList.remove('hidden'); btnLoader.classList.add('hidden');
             }
         };
 
