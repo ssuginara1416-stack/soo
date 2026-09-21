@@ -73,7 +73,7 @@
     <div id="alertModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="alertBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2" id="alertTitle">알림</h3>
-            <p class="text-gray-600 mb-6 text-sm leading-relaxed" id="alertMessage">메시지 내용</p>
+            <p class="text-gray-600 mb-6 text-sm leading-relaxed whitespace-pre-wrap" id="alertMessage">메시지 내용</p>
             <button onclick="closeModal('alertModal')" class="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md">확인</button>
         </div>
     </div>
@@ -949,7 +949,12 @@
                             <div class="text-xs text-gray-500 mt-1 line-clamp-2">${h.detail}</div>
                             ${h.image ? `<div class="mt-2"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-16 h-16 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
                         </div>
-                        <div class="font-black text-lg ${colorClass} whitespace-nowrap">${valueText}</div>
+                        <div class="flex flex-col items-end">
+                            <div class="font-black text-lg ${colorClass} whitespace-nowrap mb-1.5">${valueText}</div>
+                            <button onclick="window.revertHistoryRecord('${h.fbId}', '${learnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
+                                <i class="fa-solid fa-rotate-left mr-1"></i>되돌리기
+                            </button>
+                        </div>
                     </div>
                     `;
                 }).join('');
@@ -971,6 +976,47 @@
                 </div>
             `;
         }
+
+        window.revertHistoryRecord = async function(fbId, learnerId) {
+            const h = window.state.history.find(r => r.fbId === fbId);
+            if (!h) return;
+            
+            if (!confirm(`[${h.item}] 내역을 정말 취소(삭제)하시겠습니까?\n관련 포인트나 금액이 복구됩니다.`)) return;
+            
+            // 기존 상태 복사 후 복구 계산
+            const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
+            
+            if (h.type === 'coupon') {
+                l.coupons.balance -= h.amount;
+                if (h.item === '쿠폰 발급 완료') l.coupons.totalIssued -= 1;
+            } else if (h.type === 'use') {
+                l.coupons.balance -= h.amount; // -금액을 빼주면 +가 됨
+            } else if (h.type === 'merit' || h.type === 'demerit') {
+                l.points.totalPoints -= h.points;
+                if (h.type === 'merit') {
+                    if (h.item === '영어 도서') l.points.englishBooks -= 1;
+                    else if (h.item === '한글 도서') l.points.koreanBooks -= 1;
+                    else if (h.item === '기타 활동') l.points.customPoints -= h.points;
+                }
+            }
+
+            try {
+                if (!isLocalMode) {
+                    await updateDoc(doc(db, `${basePath}/learners`, learnerId), {
+                        points: l.points, coupons: l.coupons
+                    });
+                    await deleteDoc(doc(db, `${basePath}/history`, fbId));
+                } else {
+                    window.state.learners[learnerId] = l;
+                    window.state.history = window.state.history.filter(r => r.fbId !== fbId);
+                    triggerRender();
+                }
+                window.showModal('취소 완료', '해당 내역이 정상적으로 취소(복구) 되었습니다.');
+            } catch(e) {
+                console.error(e);
+                window.showModal('오류', '취소 중 문제가 발생했습니다.');
+            }
+        };
 
         function getReadingListHTML(learnerId, fromAdmin = false) {
             const l = window.state.learners[learnerId];
@@ -1015,7 +1061,9 @@
                     <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
                         <button onclick="window.navigate('${fromAdmin ? 'admin' : 'learner'}', {learnerId: '${learnerId}'})" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
                         <h1 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-book-open text-indigo-500 mr-2"></i>독서 기록장</h1>
-                        <div class="w-8"></div>
+                        <button onclick="window.exportReadingListToCSV('${learnerId}')" class="text-indigo-600 hover:text-indigo-800 p-2 -mr-2 transition flex items-center justify-center bg-indigo-50 rounded-lg text-sm font-bold px-3 border border-indigo-100 shadow-sm" title="엑셀로 저장">
+                            <i class="fa-solid fa-file-excel mr-1.5"></i> 엑셀 저장
+                        </button>
                     </div>
                     <div class="flex-1 overflow-y-auto p-5 hide-scroll pb-10 w-full space-y-6">
                         <section class="bg-indigo-600 text-white rounded-2xl p-5 shadow-md relative overflow-hidden">
@@ -1040,179 +1088,29 @@
             `;
         }
 
-        function getAddPointHTML(defaultLearnerId = 'suweol') {
-            const today = new Date().toISOString().split('T')[0];
-            return `
-                <div class="flex flex-col h-full bg-white fade-in w-full">
-                    <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between border-b border-gray-100 sticky top-0 z-10 w-full">
-                        <button onclick="window.navigate('admin')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
-                        <h1 class="text-lg font-bold text-gray-800">포인트 강제 부여</h1>
-                        <div class="w-8"></div>
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-6 space-y-6 hide-scroll pb-10 w-full">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">누구에게 주나요?</label>
-                            <select id="pointLearner" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
-                                <option value="suweol" ${defaultLearnerId === 'suweol' ? 'selected' : ''}>👦 이수월</option>
-                                <option value="suna" ${defaultLearnerId === 'suna' ? 'selected' : ''}>👧 이수나</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">분류</label>
-                                <select id="pointCategory" onchange="window.updatePointFormUI()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
-                                    <option value="merit">상점 (+)</option>
-                                    <option value="demerit">벌점 (-)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">날짜</label>
-                                <input type="date" id="pointDate" value="${today}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-700">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">항목</label>
-                            <select id="pointItem" onchange="window.updateCustomPointInput()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none">
-                                <option value="eng">영어 도서 (+2)</option>
-                                <option value="kor">한글 도서 (+1)</option>
-                                <option value="custom">기타 상점 (직접입력)</option>
-                            </select>
-                        </div>
-                        <div id="customPointDiv" class="hidden animate-[fadeIn_0.2s_ease-out]">
-                            <label class="block text-sm font-bold text-gray-700 mb-2">포인트 (숫자만 입력)</label>
-                            <input type="number" id="pointValue" placeholder="예: 3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">상세 내용 <span class="text-rose-500">*</span></label>
-                            <input type="text" id="pointDetail" placeholder="예: 해리포터 1권 완독" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
-                        </div>
-                        <div class="pt-6">
-                            <button onclick="window.submitAdminPointForm()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition transform active:scale-95 text-lg">
-                                적용하기 (실시간 반영)
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function getLearnerHTML(learnerId) {
+        window.exportReadingListToCSV = function(learnerId) {
             const l = window.state.learners[learnerId];
-            const isSuweol = learnerId === 'suweol';
-            const myHistory = window.state.history.filter(h => h.learnerId === learnerId).slice(0, 5);
+            const readingHistory = window.state.history.filter(h => h.learnerId === learnerId && h.type === 'merit' && (h.item === '영어 도서' || h.item === '한글 도서')).sort((a,b) => a.id.localeCompare(b.id));
+            if(readingHistory.length === 0) { window.showModal('알림', '출력할 독서 기록이 없습니다.'); return; }
+
+            let csvContent = "\uFEFF";
+            csvContent += "연번,날짜,도서구분,상세내용(책제목),사진첨부\n";
             
-            let progressPercent = Math.min(100, Math.max(0, (l.points.totalPoints / 10) * 100));
-            
-            let engConditionHTML = '';
-            if (isSuweol) {
-                const engDone = l.points.englishBooks >= 3;
-                engConditionHTML = `
-                    <div class="mt-4 text-[11px] font-bold px-3 py-1.5 rounded-full inline-flex items-center ${engDone ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
-                        <i class="fa-solid fa-book-open mr-1.5"></i> 영어 도서 3권 필수 (현재 ${l.points.englishBooks}권) ${engDone ? '✅' : '❌'}
-                    </div>
-                `;
-            }
+            readingHistory.forEach((h, index) => {
+                let detailStr = h.detail ? h.detail.replace(/"/g, '""') : '';
+                let hasPhoto = h.image ? "O" : "X";
+                csvContent += `${index + 1},${h.date},${h.item},"${detailStr}",${hasPhoto}\n`;
+            });
 
-            let historyHTML = '';
-            if (myHistory.length === 0) {
-                historyHTML = `<div class="text-center text-gray-400 text-sm py-6">아직 내역이 없어요.<br>열심히 포인트를 모아보세요!</div>`;
-            } else {
-                historyHTML = myHistory.map(h => {
-                    const isPos = h.points > 0 || h.amount > 0;
-                    const isNeg = h.points < 0 || h.amount < 0;
-                    const valueText = h.type === 'use' || h.type === 'coupon' 
-                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
-                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
-                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
-                    return `
-                    <div class="flex justify-between items-center py-3.5 border-b border-gray-100 last:border-0 transition hover:bg-gray-50 px-2 rounded-lg -mx-2">
-                        <div class="flex-1 pr-2">
-                            <div class="text-[10px] text-gray-400 font-bold tracking-wider mb-0.5">${h.date}</div>
-                            <div class="font-bold text-gray-800 text-sm">${h.item}</div>
-                            <div class="text-[11px] text-gray-500 mt-0.5 line-clamp-1 w-48">${h.detail}</div>
-                            ${h.image ? `<div class="mt-1.5"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-10 h-10 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
-                        </div>
-                        <div class="font-black text-sm ${colorClass}">${valueText}</div>
-                    </div>
-                    `;
-                }).join('');
-            }
-
-            let noticeBannerHTML = '';
-            if (window.state.announcements && window.state.announcements.length > 0) {
-                const latestNotice = window.state.announcements[0];
-                noticeBannerHTML = `
-                    <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 p-4 rounded-2xl mb-5 shadow-sm relative overflow-hidden flex items-start">
-                        <div class="absolute -right-3 -top-3 text-yellow-200 opacity-40"><i class="fa-solid fa-bullhorn text-6xl"></i></div>
-                        <div class="bg-yellow-400 text-yellow-900 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm mr-3 flex-shrink-0 relative z-10">
-                            <i class="fa-solid fa-bell"></i>
-                        </div>
-                        <div class="relative z-10 flex-1">
-                            <div class="text-[10px] text-yellow-600 font-bold tracking-wider mb-0.5">부모님 알림 (${latestNotice.date})</div>
-                            <div class="font-bold text-yellow-900 text-sm leading-relaxed whitespace-pre-wrap">${latestNotice.message}</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
-                    <div class="bg-indigo-600 px-5 py-4 shadow-md flex items-center justify-between text-white sticky top-0 z-10 w-full">
-                        <button onclick="window.navigate('home')" class="hover:text-indigo-200 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
-                        <h1 class="text-lg font-bold flex items-center">${l.name}의 지갑 <span class="ml-2 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span></h1>
-                        <div class="w-8"></div>
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-5 space-y-5 hide-scroll pb-10 w-full">
-                        ${noticeBannerHTML}
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden">
-                            <h2 class="text-xs font-black text-gray-400 mb-2 tracking-wider">포인트 모으기</h2>
-                            <div class="flex justify-between items-end mb-2 border-b border-gray-100 pb-3">
-                                <span class="text-3xl font-black text-gray-800">${l.points.totalPoints} <span class="text-lg text-gray-400 font-bold">/ 10 P</span></span>
-                            </div>
-                            <div class="h-3.5 w-full bg-gray-100 rounded-full overflow-hidden mt-4 shadow-inner">
-                                <div class="h-full bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all duration-700 ease-out rounded-full" style="width: ${progressPercent}%;"></div>
-                            </div>
-                            ${engConditionHTML}
-                            <div class="grid grid-cols-3 gap-3 mt-6">
-                                <div class="bg-gray-50 p-2.5 rounded-xl text-center border border-gray-100">
-                                    <div class="text-[10px] text-gray-500 font-bold mb-1">영어 도서</div>
-                                    <div class="font-black text-gray-700 text-sm">${l.points.englishBooks}권</div>
-                                </div>
-                                <div class="bg-gray-50 p-2.5 rounded-xl text-center border border-gray-100">
-                                    <div class="text-[10px] text-gray-500 font-bold mb-1">한글 도서</div>
-                                    <div class="font-black text-gray-700 text-sm">${l.points.koreanBooks}권</div>
-                                </div>
-                                <div class="bg-gray-50 p-2.5 rounded-xl text-center border border-gray-100">
-                                    <div class="text-[10px] text-gray-500 font-bold mb-1">기타 상점</div>
-                                    <div class="font-black text-gray-700 text-sm">${l.points.customPoints}P</div>
-                                </div>
-                            </div>
-                            <button onclick="window.openPointReqModal('${learnerId}')" class="mt-5 w-full bg-indigo-50 text-indigo-600 border border-indigo-100 font-bold py-3 rounded-xl hover:bg-indigo-100 transition active:scale-95 flex items-center justify-center text-sm shadow-sm">
-                                <i class="fa-solid fa-camera mr-2"></i> 독서 / 상점 신청하기
-                            </button>
-                        </div>
-                        <div class="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-700 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
-                            <i class="fa-solid fa-piggy-bank absolute -right-6 -bottom-6 text-8xl opacity-20 transform -rotate-12"></i>
-                            <h2 class="text-xs font-bold text-indigo-200 mb-1 tracking-wider">사용 가능한 내 돈</h2>
-                            <div class="text-3xl font-black mb-1 drop-shadow-md">${l.coupons.balance.toLocaleString()}원</div>
-                            <div class="text-xs font-medium text-indigo-200 mb-6 flex items-center bg-black/10 w-max px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur-sm">
-                                <i class="fa-solid fa-trophy mr-1.5 text-yellow-300"></i> 지금까지 모은 총 금액: <span class="ml-1.5 font-bold text-white">${(l.coupons.totalIssued * 2000).toLocaleString()}원</span>
-                            </div>
-                            <button onclick="window.openRequestModal('${learnerId}')" class="w-full bg-white text-indigo-700 font-black py-3.5 rounded-xl shadow-md hover:bg-indigo-50 transition active:scale-95 flex items-center justify-center relative z-10">
-                                <i class="fa-solid fa-hand-holding-dollar mr-2 text-lg"></i> 용돈 지급 신청하기
-                            </button>
-                        </div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                            <h2 class="text-xs font-black text-gray-400 mb-4 tracking-wider">최근 내역 (동기화됨)</h2>
-                            <div class="space-y-1">${historyHTML}</div>
-                            <button onclick="window.navigate('readingList', {learnerId: '${learnerId}', fromAdmin: false})" class="w-full mt-4 bg-gray-50 text-gray-600 border border-gray-200 font-bold py-3 rounded-xl hover:bg-gray-100 transition active:scale-95 flex items-center justify-center text-sm shadow-sm">
-                                <i class="fa-solid fa-book-open-reader mr-2"></i> 전체 독서 기록장 보기
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `수남매_${l.name}_독서기록장_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
 
         window.updatePointFormUI = function() {
             const category = document.getElementById('pointCategory').value;
