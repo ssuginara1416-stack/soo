@@ -69,7 +69,7 @@
         <div id="screenContent" class="w-full h-full flex flex-col hidden"></div>
     </div>
     
-    <!-- Alert Modal (Replaces default alert()) -->
+    <!-- Alert Modal -->
     <div id="alertModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="alertBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2" id="alertTitle">알림</h3>
@@ -94,7 +94,7 @@
         </div>
     </div>
 
-    <!-- Announcement Modal (For Admin to send notices) -->
+    <!-- Announcement Modal -->
     <div id="announcementModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="announcementBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2">새 공지사항 작성</h3>
@@ -110,7 +110,7 @@
         </div>
     </div>
 
-    <!-- Point Request Modal (For students to request points + photo) -->
+    <!-- Point Request Modal -->
     <div id="pointReqModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4 overflow-y-auto">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95 my-auto" id="pointReqBox">
             <h3 class="text-xl font-bold text-gray-900 mb-1">독서 / 상점 신청</h3>
@@ -168,7 +168,7 @@
         </div>
     </div>
 
-    <!-- Password Modal (For Admin Access) -->
+    <!-- Password Modal -->
     <div id="passwordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="passwordBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2">관리자 인증</h3>
@@ -184,35 +184,47 @@
         </div>
     </div>
 
-    <!-- Find Password Modal -->
+    <!-- Find Password Modal (보안 질문 방식) -->
     <div id="findPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="findPasswordBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2">비밀번호 찾기</h3>
-            <p class="text-gray-500 text-sm mb-4" id="findPasswordMessage">등록된 이메일을 입력하시면 임시 비밀번호를 발급해 드립니다.<br><span class="text-xs text-indigo-500 font-bold">(데모용 가입 이메일: parent@email.com)</span></p>
-            <input type="email" id="recoveryEmailInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium" placeholder="이메일 주소 입력">
+            <p class="text-gray-500 text-sm mb-4" id="findPasswordMessage">비밀번호를 확인하려면 아래 보안 질문의 정답을 입력해주세요.</p>
+            
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-4 text-center">
+                <span id="displaySecurityQuestion" class="text-indigo-800 font-bold tracking-tight">Q. 우리의 신혼 여행지는?</span>
+            </div>
+            
+            <input type="text" id="securityAnswerInput" onkeydown="if(event.key === 'Enter') verifySecurityAnswer()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-center text-lg" placeholder="정답 입력">
+            
             <div class="flex gap-3">
                 <button onclick="closeModal('findPasswordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
-                <button onclick="sendPasswordReset()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
-                    <span id="resetPwText">메일 전송</span>
+                <button onclick="verifySecurityAnswer()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                    <span id="resetPwText">확인</span>
                     <i id="resetPwLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Change Password Modal -->
+    <!-- Change Settings (Password & Security Question) Modal -->
     <div id="changePasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="changePasswordBox">
-            <h3 class="text-xl font-bold text-gray-900 mb-2">비밀번호 변경</h3>
-            <p class="text-gray-500 text-sm mb-4">새로운 관리자 비밀번호를 설정합니다.</p>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">설정 변경</h3>
+            <p class="text-gray-500 text-sm mb-4">관리자 비밀번호와 보안 질문을 변경합니다.</p>
             <div class="space-y-3 mb-6">
-                <input type="password" id="currentPasswordInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="현재 비밀번호">
-                <input type="password" id="newPasswordInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="새 비밀번호 (4자리 이상)">
+                <input type="password" id="currentPasswordInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="현재 비밀번호 (필수)">
+                <input type="password" id="newPasswordInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="새 비밀번호 (4자리 이상 / 빈칸 시 유지)">
+                
+                <div class="pt-2 border-t border-gray-100">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">보안 질문 설정 (비밀번호 찾기용)</label>
+                    <input type="text" id="newSecurityQuestionInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="새로운 보안 질문 (예: 우리의 신혼 여행지는?)">
+                    <input type="text" id="newSecurityAnswerInput" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="보안 질문 정답 (예: 발리)">
+                </div>
             </div>
             <div class="flex gap-3">
                 <button onclick="closeModal('changePasswordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
-                <button onclick="changeAdminPassword()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
-                    <span id="changePwText">변경하기</span>
+                <button onclick="changeAdminSettings()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                    <span id="changePwText">저장하기</span>
                     <i id="changePwLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
                 </button>
             </div>
@@ -222,37 +234,33 @@
     <!-- Firebase SDKs and Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 이 부분을 회원님만의 앱 이름으로 변경합니다.
         const appId = 'soo-family-app';
         
         // ----------------------------------------------------
         // 아래 부분을 Firebase에서 복사한 회원님의 설정값으로 바꿔주세요!
         // ----------------------------------------------------
-       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDOimz28W-Qc5TlPha2ngqrqJHap6qlwCA",
-  authDomain: "soo-family.firebaseapp.com",
-  projectId: "soo-family",
-  storageBucket: "soo-family.firebasestorage.app",
-  messagingSenderId: "339270809643",
-  appId: "1:339270809643:web:8a4075793358aa115dd26e",
-  measurementId: "G-LR71YE2KRZ"
-};
-
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOimz28W-Qc5TlPha2ngqrqJHap6qlwCA",
+            authDomain: "soo-family.firebaseapp.com",
+            projectId: "soo-family",
+            storageBucket: "soo-family.firebasestorage.app",
+            messagingSenderId: "339270809643",
+            appId: "1:339270809643:web:8a4075793358aa115dd26e",
+            measurementId: "G-LR71YE2KRZ"
+        };
         // ----------------------------------------------------
         
-        // Define Base Collection Rule 1
         const basePath = `artifacts/${appId}/public/data`;
         
         let app, db, auth;
         let isLocalMode = false;
         
-        // Global State (Replicated from Firebase real-time)
+        // Global State
         window.state = {
-            admin: { password: '0000', email: 'parent@email.com' },
+            admin: { password: '0000', securityQuestion: '우리의 신혼 여행지는?', securityAnswer: '발리' },
             learners: {
                 suweol: { id: 'suweol', name: '이수월', points: { englishBooks: 0, koreanBooks: 0, customPoints: 0, totalPoints: 0 }, coupons: { balance: 0, totalIssued: 0 } },
                 suna: { id: 'suna', name: '이수나', points: { englishBooks: 0, koreanBooks: 0, customPoints: 0, totalPoints: 0 }, coupons: { balance: 0, totalIssued: 0 } }
@@ -270,9 +278,7 @@ const firebaseConfig = {
         let isFirebaseLoaded = false;
 
         async function initFirebase() {
-            // 1. Firebase 설정값이 입력되지 않은 초기 상태(데모)인 경우 임시 메모리 모드로 실행
             if (!firebaseConfig || firebaseConfig.apiKey === "회원님의_API_KEY") {
-                console.warn("Firebase 설정이 입력되지 않아 임시 로컬 메모리 모드로 실행됩니다.");
                 isLocalMode = true;
                 showApp();
                 return;
@@ -283,14 +289,11 @@ const firebaseConfig = {
             db = getFirestore(app);
 
             try {
-                // 2. 익명 로그인으로 앱 사용 권한 획득
                 await signInAnonymously(auth);
-                
                 await bootstrapData();
                 setupRealtimeListeners();
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
-                // 3. 네트워크 에러 등으로 실패할 경우 앱이 멈추지 않도록 로컬 모드로 전환
                 showApp();
                 setTimeout(() => {
                     showModal("임시 모드 알림", "클라우드 서버에 연결할 수 없어 임시 모드로 실행됩니다.<br><span class='text-xs text-rose-500'>(새로고침 시 데이터가 초기화됩니다)</span>");
@@ -301,7 +304,6 @@ const firebaseConfig = {
         async function bootstrapData() {
             if (!auth.currentUser) return;
             
-            // Check Admin Config
             const adminRef = doc(db, `${basePath}/config/admin`);
             const adminSnap = await getDoc(adminRef);
             if (!adminSnap.exists()) {
@@ -310,7 +312,6 @@ const firebaseConfig = {
                 window.state.admin = adminSnap.data();
             }
 
-            // Check Learners
             const learnersRef = collection(db, `${basePath}/learners`);
             const learnersSnap = await getDocs(learnersRef);
             if (learnersSnap.empty) {
@@ -320,48 +321,38 @@ const firebaseConfig = {
         }
 
         function setupRealtimeListeners() {
-            // Listen Admin Config
             onSnapshot(doc(db, `${basePath}/config/admin`), (docSnap) => {
                 if(docSnap.exists()) window.state.admin = docSnap.data();
-            }, (error) => console.error(error));
+            });
 
-            // Listen Learners
             onSnapshot(collection(db, `${basePath}/learners`), (snap) => {
-                snap.docs.forEach(docSnap => {
-                    window.state.learners[docSnap.id] = docSnap.data();
-                });
-                if (!isFirebaseLoaded) showApp();
-                else triggerRender();
-            }, (error) => console.error(error));
+                snap.docs.forEach(docSnap => { window.state.learners[docSnap.id] = docSnap.data(); });
+                if (!isFirebaseLoaded) showApp(); else triggerRender();
+            });
 
-            // Listen History (Rule 2: Fetch all, sort locally)
             onSnapshot(collection(db, `${basePath}/history`), (snap) => {
                 window.state.history = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
-                // Sort descending by timestamp/id
                 window.state.history.sort((a, b) => b.id.localeCompare(a.id));
                 triggerRender();
-            }, (error) => console.error(error));
+            });
 
-            // Listen Money Requests
             onSnapshot(collection(db, `${basePath}/moneyRequests`), (snap) => {
                 window.state.requests = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
                 window.state.requests.sort((a, b) => b.id.localeCompare(a.id));
                 triggerRender();
-            }, (error) => console.error(error));
+            });
 
-            // Listen Point Requests
             onSnapshot(collection(db, `${basePath}/pointRequests`), (snap) => {
                 window.state.pointRequests = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
                 window.state.pointRequests.sort((a, b) => b.id.localeCompare(a.id));
                 triggerRender();
-            }, (error) => console.error(error));
+            });
 
-            // Listen Announcements
             onSnapshot(collection(db, `${basePath}/announcements`), (snap) => {
                 window.state.announcements = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
                 window.state.announcements.sort((a, b) => b.id.localeCompare(a.id));
                 triggerRender();
-            }, (error) => console.error(error));
+            });
         }
 
         function showApp() {
@@ -389,7 +380,6 @@ const firebaseConfig = {
             
             appDiv.innerHTML = html;
             
-            // Restore scroll position
             if(appDiv.firstElementChild && scrollPos > 0) {
                 appDiv.firstElementChild.scrollTop = scrollPos;
             }
@@ -433,7 +423,6 @@ const firebaseConfig = {
             const modal = document.getElementById('imageViewerModal');
             document.getElementById('fullImageViewer').src = src;
             
-            // Setup Download button
             document.getElementById('downloadImageBtn').onclick = () => {
                 const link = document.createElement('a');
                 link.href = src;
@@ -455,7 +444,6 @@ const firebaseConfig = {
                 return;
             }
 
-            // 부모님 모드에서 벗어나면 관리자 인증 상태 초기화 (재입장 시 비번 요구)
             if (screenId === 'home' || screenId === 'learner') {
                 sessionStorage.removeItem('adminAuthed');
             }
@@ -569,7 +557,6 @@ const firebaseConfig = {
 
             return `
                 <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
-                    <!-- Header -->
                     <div class="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
                         <button onclick="window.navigate('home')" class="text-gray-400 hover:text-gray-800 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
                         <h1 class="text-lg font-bold text-gray-800 flex items-center">관리자 모드 <span class="ml-2 w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span></h1>
@@ -577,7 +564,6 @@ const firebaseConfig = {
                     </div>
 
                     <div class="flex-1 overflow-y-auto p-5 space-y-8 hide-scroll pb-10 w-full">
-                        <!-- Point Requests Section -->
                         <section>
                             <h2 class="text-sm font-bold text-gray-600 mb-3 flex items-center">
                                 <i class="fa-solid fa-book-open-reader mr-2 text-indigo-500"></i>상점 신청 확인 (${window.state.pointRequests.length})
@@ -585,7 +571,6 @@ const firebaseConfig = {
                             ${pointReqsHTML}
                         </section>
 
-                        <!-- Money Requests Section -->
                         <section>
                             <h2 class="text-sm font-bold text-gray-600 mb-3 flex items-center">
                                 <i class="fa-solid fa-hand-holding-dollar mr-2 text-emerald-500"></i>용돈 지급 대기열 (${window.state.requests.length})
@@ -593,7 +578,6 @@ const firebaseConfig = {
                             ${requestsHTML}
                         </section>
 
-                        <!-- Announcements Section -->
                         <section>
                             <div class="flex justify-between items-center mb-3">
                                 <h2 class="text-sm font-bold text-gray-600 flex items-center">
@@ -606,7 +590,6 @@ const firebaseConfig = {
                             ${announcementsHTML}
                         </section>
 
-                        <!-- Learners Status Section -->
                         <section>
                             <h2 class="text-sm font-bold text-gray-600 mb-3 flex items-center"><i class="fa-solid fa-users mr-2 text-blue-500"></i>아이들 현황 및 강제 부여</h2>
                             
@@ -718,11 +701,8 @@ const firebaseConfig = {
                 const newBalance = l.coupons.balance - req.amount;
 
                 if (!isLocalMode) {
-                    // Remove request
                     await deleteDoc(doc(db, `${basePath}/moneyRequests`, fbId));
-                    // Deduct from balance
                     await updateDoc(doc(db, `${basePath}/learners`, req.learnerId), { 'coupons.balance': newBalance });
-                    // Add to history
                     await addDoc(collection(db, `${basePath}/history`), {
                         id: Date.now().toString(), learnerId: req.learnerId, date: new Date().toISOString().split('T')[0],
                         type: 'use', item: '용돈 지급 완료', points: 0, amount: -req.amount, detail: '부모님 확인 후 지급'
@@ -736,7 +716,6 @@ const firebaseConfig = {
                     });
                     triggerRender();
                 }
-
                 window.showModal('지급 완료', `<b>${l.name}</b>에게 ${req.amount.toLocaleString()}원 지급 처리가 완료되었습니다.`);
             } catch(e) {
                 console.error(e);
@@ -795,7 +774,7 @@ const firebaseConfig = {
                     if (pointsToAdd <= 0) { window.showModal('입력 오류', '기타 상점은 1 이상의 숫자를 입력하세요.'); return false; }
                     pointTypeKey = 'customPoints'; logItemName = '기타 활동'; 
                 }
-            } else { // demerit
+            } else { 
                 if (item === 'cleanup') { pointsToAdd = -1; logItemName = '정리'; }
                 else if (item === 'hw') { pointsToAdd = -2; logItemName = '숙제 미션'; }
                 else if (item === 'custom') { 
@@ -804,7 +783,6 @@ const firebaseConfig = {
                 }
             }
 
-            // Create a copy to mutate and calculate
             const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
             l.points.totalPoints += pointsToAdd;
             if (pointTypeKey === 'englishBooks' || pointTypeKey === 'koreanBooks') {
@@ -815,7 +793,6 @@ const firebaseConfig = {
 
             const historyRecords = [];
             
-            // Add primary record
             historyRecords.push({
                 id: Date.now().toString(),
                 learnerId: learnerId,
@@ -827,7 +804,6 @@ const firebaseConfig = {
                 image: image
             });
 
-            // Check Coupons
             const { updatedLearner, newHistories, msg } = window.calculateCoupons(l, learnerId);
             if (newHistories.length > 0) {
                 historyRecords.push(...newHistories);
@@ -835,13 +811,11 @@ const firebaseConfig = {
 
             try {
                 if (!isLocalMode) {
-                    // Update Firestore
                     await updateDoc(doc(db, `${basePath}/learners`, learnerId), {
                         points: updatedLearner.points,
                         coupons: updatedLearner.coupons
                     });
                     
-                    // Batch-ish write for histories
                     for(const record of historyRecords) {
                         await addDoc(collection(db, `${basePath}/history`), record);
                     }
@@ -1125,7 +1099,7 @@ const firebaseConfig = {
         function getLearnerHTML(learnerId) {
             const l = window.state.learners[learnerId];
             const isSuweol = learnerId === 'suweol';
-            const myHistory = window.state.history.filter(h => h.learnerId === learnerId).slice(0, 5); // Show latest 5
+            const myHistory = window.state.history.filter(h => h.learnerId === learnerId).slice(0, 5);
             
             let progressPercent = Math.min(100, Math.max(0, (l.points.totalPoints / 10) * 100));
             
@@ -1270,7 +1244,6 @@ const firebaseConfig = {
 
         window.exportHistoryToCSV = function(learnerId) {
             const l = window.state.learners[learnerId];
-            // Sort ascending for chronological list in Excel
             const myHistory = window.state.history.filter(h => h.learnerId === learnerId).sort((a,b) => a.id.localeCompare(b.id));
             if(myHistory.length === 0) { window.showModal('알림', '출력할 기록이 없습니다.'); return; }
 
@@ -1329,9 +1302,9 @@ const firebaseConfig = {
                     canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // Compress
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
                     
-                    if(dataUrl.length > 500000) { // Limit size safety check
+                    if(dataUrl.length > 500000) {
                          window.showModal("알림", "이미지 용량이 너무 큽니다. 다른 사진을 선택해주세요.");
                          return;
                     }
@@ -1440,7 +1413,7 @@ const firebaseConfig = {
         };
 
         // ==========================================
-        // Auth & Password Management
+        // Auth & Security Settings Management
         // ==========================================
         window.openAdminAuth = function() {
             document.getElementById('adminPasswordInput').value = '';
@@ -1474,7 +1447,12 @@ const firebaseConfig = {
         window.openFindPassword = function() {
             window.closeModal('passwordModal');
             setTimeout(() => {
-                document.getElementById('recoveryEmailInput').value = '';
+                document.getElementById('securityAnswerInput').value = '';
+                
+                // Load dynamic security question
+                const currentQuestion = window.state.admin.securityQuestion || '우리의 신혼 여행지는?';
+                document.getElementById('displaySecurityQuestion').innerText = `Q. ${currentQuestion}`;
+                
                 const modal = document.getElementById('findPasswordModal');
                 const box = document.getElementById('findPasswordBox');
                 modal.classList.remove('hidden');
@@ -1482,14 +1460,17 @@ const firebaseConfig = {
                     modal.classList.remove('opacity-0');
                     box.classList.remove('scale-95');
                     box.classList.add('scale-100');
+                    document.getElementById('securityAnswerInput').focus();
                 }, 10);
             }, 300);
         };
 
-        window.sendPasswordReset = async function() {
-            const email = document.getElementById('recoveryEmailInput').value.trim();
-            if (email !== window.state.admin.email) {
-                window.showModal('오류', '등록된 이메일이 아닙니다.');
+        window.verifySecurityAnswer = async function() {
+            const answer = document.getElementById('securityAnswerInput').value.trim();
+            const expectedAnswer = window.state.admin.securityAnswer || "발리";
+
+            if (answer !== expectedAnswer) {
+                window.showModal('오류', '정답이 일치하지 않습니다. 다시 시도해주세요.');
                 return;
             }
 
@@ -1498,15 +1479,10 @@ const firebaseConfig = {
             btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
 
             try {
-                // 이메일 전송을 흉내내고 즉시 0000으로 리셋 (데모용)
-                if (!isLocalMode) {
-                    await updateDoc(doc(db, `${basePath}/config/admin`), { password: '0000' });
-                } else {
-                    window.state.admin.password = '0000';
-                }
+                const currentPw = window.state.admin.password;
                 window.closeModal('findPasswordModal');
                 setTimeout(() => {
-                    window.showModal('초기화 완료', '이메일 확인을 생략하고 임시 비밀번호(0000)로 즉시 초기화되었습니다.', () => {
+                    window.showModal('정답입니다!', `현재 관리자 비밀번호는 <br><br><span class="text-2xl font-black text-indigo-600 tracking-widest">[ ${currentPw} ]</span><br><br> 입니다.`, () => {
                         window.openAdminAuth();
                     });
                 }, 300);
@@ -1521,6 +1497,11 @@ const firebaseConfig = {
         window.openChangePassword = function() {
             document.getElementById('currentPasswordInput').value = '';
             document.getElementById('newPasswordInput').value = '';
+            
+            // Load current security question & answer into inputs
+            document.getElementById('newSecurityQuestionInput').value = window.state.admin.securityQuestion || '우리의 신혼 여행지는?';
+            document.getElementById('newSecurityAnswerInput').value = window.state.admin.securityAnswer || '발리';
+            
             const modal = document.getElementById('changePasswordModal');
             const box = document.getElementById('changePasswordBox');
             modal.classList.remove('hidden');
@@ -1531,31 +1512,40 @@ const firebaseConfig = {
             }, 10);
         };
 
-        window.changeAdminPassword = async function() {
+        window.changeAdminSettings = async function() {
             const curPw = document.getElementById('currentPasswordInput').value;
             const newPw = document.getElementById('newPasswordInput').value;
+            const newQ = document.getElementById('newSecurityQuestionInput').value.trim();
+            const newA = document.getElementById('newSecurityAnswerInput').value.trim();
 
             if (curPw !== window.state.admin.password) {
                 window.showModal('오류', '현재 비밀번호가 일치하지 않습니다.');
                 return;
             }
-            if (newPw.length < 4) {
+            if (newPw && newPw.length < 4) {
                 window.showModal('오류', '새 비밀번호는 4자리 이상이어야 합니다.');
                 return;
             }
+            if (!newQ || !newA) {
+                window.showModal('오류', '보안 질문과 정답을 비워둘 수 없습니다.');
+                return;
+            }
+
+            const finalPw = newPw || curPw; // If new password is blank, keep current
 
             const btnText = document.getElementById('changePwText');
             const btnLoader = document.getElementById('changePwLoader');
             btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
 
             try {
+                const newData = { password: finalPw, securityQuestion: newQ, securityAnswer: newA };
                 if (!isLocalMode) {
-                    await updateDoc(doc(db, `${basePath}/config/admin`), { password: newPw });
+                    await updateDoc(doc(db, `${basePath}/config/admin`), newData);
                 } else {
-                    window.state.admin.password = newPw;
+                    window.state.admin = { ...window.state.admin, ...newData };
                 }
                 window.closeModal('changePasswordModal');
-                setTimeout(() => window.showModal('변경 완료', '비밀번호가 성공적으로 변경되었습니다.'), 300);
+                setTimeout(() => window.showModal('변경 완료', '설정이 성공적으로 변경 및 저장되었습니다.'), 300);
             } catch(e) {
                 console.error(e);
                 window.showModal('오류', '변경 중 문제가 발생했습니다.');
@@ -1572,7 +1562,6 @@ const firebaseConfig = {
             const modal = document.getElementById('inputModal');
             const box = document.getElementById('inputBox');
             
-            // Setup Submit button action
             document.getElementById('inputConfirmBtn').onclick = () => window.submitMoneyRequest(learnerId);
 
             modal.classList.remove('hidden');
