@@ -386,6 +386,15 @@
             window.navigate('home');
         }
 
+        // ==========================================
+        // Screen Navigation (이 함수가 누락되어 화면 전환이 전혀 동작하지 않았습니다)
+        // ==========================================
+        window.navigate = function(screen, params = {}) {
+            window.currentScreen = screen;
+            window.currentParams = params;
+            triggerRender();
+        };
+
         function triggerRender() {
             if (!isFirebaseLoaded) return;
             const appDiv = document.getElementById('screenContent');
@@ -1544,6 +1553,95 @@
             } catch(e) {
                 console.error(e);
             }
+        };
+
+        window.openRequestModal = function(learnerId) {
+            document.getElementById('inputTitle').innerText = '용돈 지급 신청';
+            document.getElementById('inputMessage').innerText = '신청할 금액을 입력해주세요.';
+            document.getElementById('inputValue').value = '';
+
+            const modal = document.getElementById('inputModal');
+            const box = document.getElementById('inputBox');
+            const btnText = document.getElementById('inputConfirmText');
+            const btnLoader = document.getElementById('inputConfirmLoader');
+
+            document.getElementById('inputConfirmBtn').onclick = async () => {
+                const amount = parseInt(document.getElementById('inputValue').value);
+                if (!amount || amount <= 0) { window.showModal('입력 오류', '올바른 금액을 입력해주세요.'); return; }
+                const learner = window.state.learners[learnerId];
+                if (amount > learner.coupons.balance) { window.showModal('알림', '보유 금액보다 많은 금액은 신청할 수 없습니다.'); return; }
+
+                btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
+                try {
+                    const reqData = { id: Date.now().toString(), learnerId, amount, date: new Date().toISOString().split('T')[0] };
+                    if (!isLocalMode) {
+                        await addDoc(collection(db, `${basePath}/moneyRequests`), reqData);
+                    } else {
+                        reqData.fbId = reqData.id;
+                        window.state.requests.unshift(reqData);
+                        triggerRender();
+                    }
+                    window.closeModal('inputModal');
+                    setTimeout(() => window.showModal('신청 완료!', '부모님께 용돈 지급 신청을 보냈어요!'), 300);
+                } catch(e) {
+                    console.error(e);
+                    window.showModal('오류', '전송 실패. 다시 시도해주세요.');
+                } finally {
+                    btnText.classList.remove('hidden'); btnLoader.classList.add('hidden');
+                }
+            };
+
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); document.getElementById('inputValue').focus(); }, 10);
+        };
+
+        window.approveRequest = async function(fbId) {
+            const req = window.state.requests.find(r => r.fbId === fbId);
+            if (!req) return;
+
+            window.showConfirm('용돈 지급', `${window.state.learners[req.learnerId].name}에게 ${req.amount.toLocaleString()}원을 지급하시겠습니까?`, async () => {
+                try {
+                    const l = JSON.parse(JSON.stringify(window.state.learners[req.learnerId]));
+                    l.coupons.balance -= req.amount;
+
+                    const historyRecord = {
+                        id: Date.now().toString(), learnerId: req.learnerId, date: new Date().toISOString().split('T')[0],
+                        type: 'use', item: '용돈 지급', points: 0, amount: -req.amount, detail: '용돈 지급 완료'
+                    };
+
+                    if (!isLocalMode) {
+                        await updateDoc(doc(db, `${basePath}/learners`, req.learnerId), { coupons: l.coupons });
+                        await addDoc(collection(db, `${basePath}/history`), historyRecord);
+                        await deleteDoc(doc(db, `${basePath}/moneyRequests`, fbId));
+                    } else {
+                        window.state.learners[req.learnerId] = l;
+                        historyRecord.fbId = historyRecord.id;
+                        window.state.history.unshift(historyRecord);
+                        window.state.requests = window.state.requests.filter(r => r.fbId !== fbId);
+                        triggerRender();
+                    }
+                    window.showModal('지급 완료', '용돈이 지급되었습니다.');
+                } catch(e) {
+                    console.error(e);
+                    window.showModal('오류', '지급 처리 중 문제가 발생했습니다.');
+                }
+            });
+        };
+
+        window.rejectPointRequest = async function(fbId) {
+            window.showConfirm('신청 반려', '이 신청을 반려하시겠습니까? 목록에서 삭제됩니다.', async () => {
+                try {
+                    if (!isLocalMode) {
+                        await deleteDoc(doc(db, `${basePath}/pointRequests`, fbId));
+                    } else {
+                        window.state.pointRequests = window.state.pointRequests.filter(r => r.fbId !== fbId);
+                        triggerRender();
+                    }
+                } catch(e) {
+                    console.error(e);
+                    window.showModal('오류', '반려 처리 중 문제가 발생했습니다.');
+                }
+            });
         };
 
         window.approvePointRequest = async function(fbId) {
