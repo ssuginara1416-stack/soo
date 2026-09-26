@@ -16,12 +16,13 @@
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #e5e7eb; 
-            touch-action: pan-y;
+            touch-action: pan-y; /* Optimize for mobile touch */
         }
         .app-container { 
             height: 100dvh; 
             max-height: 100dvh; 
         }
+        /* Mobile-first layout simulating app on desktop */
         @media (min-width: 640px) {
             .app-container { 
                 height: 850px; 
@@ -32,15 +33,18 @@
             }
         }
         
+        /* Hide scrollbar for clean UI */
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
+        /* Animations */
         .fade-in { animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes fadeIn { 
             from { opacity: 0; transform: translateY(10px); } 
             to { opacity: 1; transform: translateY(0); } 
         }
 
+        /* Loading Spinner */
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #4f46e5;
@@ -65,16 +69,16 @@
         <div id="screenContent" class="w-full h-full flex flex-col hidden"></div>
     </div>
     
-    <!-- Alert Modal -->
+    <!-- Alert Modal (기본 팝업 대체) -->
     <div id="alertModal" class="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="alertBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2" id="alertTitle">알림</h3>
             <p class="text-gray-600 mb-6 text-sm leading-relaxed whitespace-pre-wrap" id="alertMessage">메시지 내용</p>
-            <button onclick="window.closeModal('alertModal')" class="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md">확인</button>
+            <button onclick="closeModal('alertModal')" class="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md">확인</button>
         </div>
     </div>
 
-    <!-- Confirm Modal -->
+    <!-- Confirm Modal (진행/취소 팝업 대체) -->
     <div id="confirmModal" class="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="confirmBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2" id="confirmTitle">확인</h3>
@@ -86,7 +90,7 @@
         </div>
     </div>
 
-    <!-- Prompt Modal -->
+    <!-- Prompt Modal (문자/숫자 입력 팝업 대체) -->
     <div id="promptModal" class="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900 bg-opacity-60 hidden opacity-0 transition-opacity duration-300 px-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="promptBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2" id="promptTitle">입력</h3>
@@ -106,7 +110,7 @@
             <p class="text-gray-500 text-sm mb-4" id="inputMessage">신청할 금액을 입력해주세요.</p>
             <input type="number" id="inputValue" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="예: 1000">
             <div class="flex gap-3">
-                <button onclick="window.closeModal('inputModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button onclick="closeModal('inputModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
                 <button id="inputConfirmBtn" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
                     <span id="inputConfirmText">신청하기</span>
                     <i id="inputConfirmLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
@@ -122,8 +126,8 @@
             <p class="text-gray-500 text-sm mb-4">아이들 화면 상단에 고정될 메시지를 입력하세요.</p>
             <textarea id="announcementText" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium resize-none h-24 whitespace-pre-wrap" placeholder="예: 이번 주말은 특별 상점 2배 이벤트입니다!"></textarea>
             <div class="flex gap-3">
-                <button onclick="window.closeModal('announcementModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
-                <button onclick="window.submitAnnouncement()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                <button onclick="closeModal('announcementModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button onclick="submitAnnouncement()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
                     <span id="announcementBtnText">공지 등록</span>
                     <i id="announcementBtnLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
                 </button>
@@ -163,13 +167,13 @@
                         </div>
                         <img id="photoPreview" class="absolute inset-0 w-full h-full object-cover hidden">
                     </div>
-                    <input type="file" id="reqImage" accept="image/*" class="hidden" onchange="window.handleImageUpload(event)">
+                    <input type="file" id="reqImage" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
                 </div>
             </div>
 
             <div class="flex gap-3">
-                <button onclick="window.closeModal('pointReqModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
-                <button id="pointReqSubmitBtn" onclick="window.submitPointRequest()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                <button onclick="closeModal('pointReqModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button id="pointReqSubmitBtn" onclick="submitPointRequest()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
                     <span id="pointReqSubmitText">신청하기</span>
                     <i id="pointReqSubmitLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
                 </button>
@@ -177,12 +181,12 @@
         </div>
     </div>
 
-    <!-- Image Viewer Modal -->
+    <!-- Image Viewer Modal (강력한 다운로드 기능 포함) -->
     <div id="imageViewerModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-90 hidden opacity-0 transition-opacity duration-300">
         <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
             <div class="absolute top-4 right-4 flex gap-4">
                 <button id="downloadImageBtn" class="text-white text-2xl opacity-70 hover:opacity-100 p-2" title="사진 다운로드"><i class="fa-solid fa-download"></i></button>
-                <button onclick="window.closeModal('imageViewerModal')" class="text-white text-3xl opacity-70 hover:opacity-100 p-2" title="닫기"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeModal('imageViewerModal')" class="text-white text-3xl opacity-70 hover:opacity-100 p-2" title="닫기"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <img id="fullImageViewer" src="" class="max-w-full max-h-full object-contain rounded-lg">
         </div>
@@ -193,13 +197,13 @@
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95" id="passwordBox">
             <h3 class="text-xl font-bold text-gray-900 mb-2">관리자 인증</h3>
             <p class="text-gray-500 text-sm mb-4" id="passwordMessage">비밀번호를 입력해주세요. <br><span class="text-xs">(초기 비밀번호: 0000)</span></p>
-            <input type="password" id="adminPasswordInput" onkeydown="if(event.key === 'Enter') window.verifyAdminPassword()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold tracking-widest text-center text-xl" placeholder="****" inputmode="numeric" pattern="[0-9]*">
+            <input type="password" id="adminPasswordInput" onkeydown="if(event.key === 'Enter') verifyAdminPassword()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold tracking-widest text-center text-xl" placeholder="****" inputmode="numeric" pattern="[0-9]*">
             <div class="flex gap-3">
-                <button onclick="window.closeModal('passwordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
-                <button onclick="window.verifyAdminPassword()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md">확인</button>
+                <button onclick="closeModal('passwordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button onclick="verifyAdminPassword()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md">확인</button>
             </div>
             <div class="mt-4 text-center">
-                <button onclick="window.openFindPassword()" class="text-sm text-gray-400 hover:text-indigo-600 underline underline-offset-2 font-medium">비밀번호를 잊으셨나요?</button>
+                <button onclick="openFindPassword()" class="text-sm text-gray-400 hover:text-indigo-600 underline underline-offset-2 font-medium">비밀번호를 잊으셨나요?</button>
             </div>
         </div>
     </div>
@@ -214,11 +218,11 @@
                 <span id="displaySecurityQuestion" class="text-indigo-800 font-bold tracking-tight">Q. 우리의 신혼 여행지는?</span>
             </div>
             
-            <input type="text" id="securityAnswerInput" onkeydown="if(event.key === 'Enter') window.verifySecurityAnswer()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-center text-lg" placeholder="정답 입력">
+            <input type="text" id="securityAnswerInput" onkeydown="if(event.key === 'Enter') verifySecurityAnswer()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-center text-lg" placeholder="정답 입력">
             
             <div class="flex gap-3">
-                <button onclick="window.closeModal('findPasswordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
-                <button onclick="window.verifySecurityAnswer()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                <button onclick="closeModal('findPasswordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button onclick="verifySecurityAnswer()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
                     <span id="resetPwText">확인</span>
                     <i id="resetPwLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
                 </button>
@@ -242,8 +246,8 @@
                 </div>
             </div>
             <div class="flex gap-3">
-                <button onclick="window.closeModal('changePasswordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
-                <button onclick="window.changeAdminSettings()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
+                <button onclick="closeModal('changePasswordModal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition">취소</button>
+                <button onclick="changeAdminSettings()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-md flex justify-center items-center">
                     <span id="changePwText">저장하기</span>
                     <i id="changePwLoader" class="fa-solid fa-spinner fa-spin hidden"></i>
                 </button>
@@ -259,6 +263,9 @@
 
         const appId = 'soo-family-app';
         
+        // ----------------------------------------------------
+        // 아래 부분을 Firebase에서 복사한 회원님의 설정값으로 바꿔주세요!
+        // ----------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyDOimz28W-Qc5TlPha2ngqrqJHap6qlwCA",
             authDomain: "soo-family.firebaseapp.com",
@@ -268,12 +275,14 @@
             appId: "1:339270809643:web:8a4075793358aa115dd26e",
             measurementId: "G-LR71YE2KRZ"
         };
+        // ----------------------------------------------------
         
         const basePath = `artifacts/${appId}/public/data`;
         
         let app, db, auth;
         let isLocalMode = false;
         
+        // Global State
         window.state = {
             admin: { password: '0000', securityQuestion: '우리의 신혼 여행지는?', securityAnswer: '발리' },
             learners: {
@@ -303,23 +312,12 @@
             auth = getAuth(app);
             db = getFirestore(app);
 
-            // Safety timeout (3초 내에 동기화 안 되면 로컬 모드로 강제 진입하여 멈춤 방지)
-            const fallbackTimer = setTimeout(() => {
-                if (!isFirebaseLoaded) {
-                    console.warn("Firebase connection timeout. Switching to local fallback mode.");
-                    isLocalMode = true;
-                    showApp();
-                }
-            }, 3000);
-
             try {
                 await signInAnonymously(auth);
                 await bootstrapData();
                 setupRealtimeListeners();
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
-                clearTimeout(fallbackTimer);
-                isLocalMode = true;
                 showApp();
                 setTimeout(() => {
                     window.showModal("임시 모드 알림", "클라우드 서버에 연결할 수 없어 임시 모드로 실행됩니다.<br><span class='text-xs text-rose-500'>(새로고침 시 데이터가 초기화됩니다)</span>");
@@ -353,46 +351,35 @@
 
             onSnapshot(collection(db, `${basePath}/learners`), (snap) => {
                 snap.docs.forEach(docSnap => { window.state.learners[docSnap.id] = docSnap.data(); });
-                if (!isFirebaseLoaded) {
-                    showApp();
-                } else {
-                    triggerRender();
-                }
-            }, (err) => {
-                console.error("Snapshot error:", err);
-                if (!isFirebaseLoaded) {
-                    isLocalMode = true;
-                    showApp();
-                }
+                if (!isFirebaseLoaded) showApp(); else triggerRender();
             });
 
             onSnapshot(collection(db, `${basePath}/history`), (snap) => {
                 window.state.history = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
-                window.state.history.sort((a, b) => String(b.id).localeCompare(String(a.id)));
+                window.state.history.sort((a, b) => b.id.localeCompare(a.id));
                 triggerRender();
             });
 
             onSnapshot(collection(db, `${basePath}/moneyRequests`), (snap) => {
                 window.state.requests = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
-                window.state.requests.sort((a, b) => String(b.id).localeCompare(String(a.id)));
+                window.state.requests.sort((a, b) => b.id.localeCompare(a.id));
                 triggerRender();
             });
 
             onSnapshot(collection(db, `${basePath}/pointRequests`), (snap) => {
                 window.state.pointRequests = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
-                window.state.pointRequests.sort((a, b) => String(b.id).localeCompare(String(a.id)));
+                window.state.pointRequests.sort((a, b) => b.id.localeCompare(a.id));
                 triggerRender();
             });
 
             onSnapshot(collection(db, `${basePath}/announcements`), (snap) => {
                 window.state.announcements = snap.docs.map(d => ({ fbId: d.id, ...d.data() }));
-                window.state.announcements.sort((a, b) => String(b.id).localeCompare(String(a.id)));
+                window.state.announcements.sort((a, b) => b.id.localeCompare(a.id));
                 triggerRender();
             });
         }
 
         function showApp() {
-            if (isFirebaseLoaded) return;
             isFirebaseLoaded = true;
             document.getElementById('loadingScreen').classList.add('hidden');
             document.getElementById('screenContent').classList.remove('hidden');
@@ -423,7 +410,7 @@
         }
 
         // ==========================================
-        // Custom Modal Systems
+        // Custom Modal Systems (강제 팝업 차단 우회)
         // ==========================================
         window.showModal = function(title, message, callback = null) {
             document.getElementById('alertTitle').innerText = title;
@@ -505,15 +492,17 @@
             }, 300);
         };
 
-        // ==========================================
+       // ==========================================
         // Image Viewer & Robust Download Function
         // ==========================================
         window.openImageViewer = function(src) {
             const modal = document.getElementById('imageViewerModal');
             document.getElementById('fullImageViewer').src = src;
             
+            // 강력한 사진 저장 로직 (모바일/PC 완벽 대응)
             document.getElementById('downloadImageBtn').onclick = async () => {
                 try {
+                    // Base64 텍스트를 파일(Blob) 형태로 변환 (동기 처리로 차단 우회)
                     const dataURLtoBlob = (dataurl) => {
                         let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
                             bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
@@ -527,19 +516,21 @@
                     const filename = `수남매_인증사진_${Date.now()}.jpg`;
                     const file = new File([blob], filename, { type: blob.type });
 
+                    // 1. 모바일 환경: 스마트폰 고유의 '공유/저장' 메뉴 창 띄우기 (가장 안전하고 확실함)
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         try {
                             await navigator.share({
                                 files: [file],
                                 title: '수남매 인증사진'
                             });
-                            return;
+                            return; // 모바일 팝업 성공 시 여기서 종료
                         } catch (err) {
                             console.log('사용자 공유 취소', err);
                             return; 
                         }
                     }
 
+                    // 2. PC 환경: 기존처럼 즉시 강제 다운로드
                     const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.style.display = 'none';
@@ -563,25 +554,6 @@
                 modal.classList.remove('opacity-0');
             }, 10);
         };
-
-        // ==========================================
-        // Navigation
-        // ==========================================
-        window.navigate = function(screenId, params = {}) {
-            if (screenId === 'admin' && !sessionStorage.getItem('adminAuthed')) {
-                window.openAdminAuth();
-                return;
-            }
-
-            if (screenId === 'home' || screenId === 'learner') {
-                sessionStorage.removeItem('adminAuthed');
-            }
-
-            window.currentScreen = screenId;
-            window.currentParams = params;
-            triggerRender();
-        };
-
         // ==========================================
         // UI Generator Functions
         // ==========================================
@@ -857,6 +829,7 @@
                     else if(h.type === 'coupon') typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">쿠폰</span>';
                     else typeBadge = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">사용</span>';
 
+                    // 쿠폰 기록은 수동 삭제 불가 (재계산 시 자동 처리됨)
                     const deleteBtnHTML = (h.type === 'coupon') ? '' : `
                         <button onclick="window.revertHistoryRecord('${h.fbId}', '${learnerId}')" class="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-100 active:scale-95 transition flex items-center shadow-sm">
                             <i class="fa-solid fa-rotate-left mr-1"></i>삭제
@@ -868,7 +841,7 @@
                         <div class="flex-1 pr-2">
                             <div class="flex items-center gap-2 mb-1">
                                 ${typeBadge}
-                                <span class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date || '날짜 없음'}</span>
+                                <span class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date}</span>
                             </div>
                             <div class="font-bold text-gray-800 text-sm">${h.item}</div>
                             <div class="text-xs text-gray-500 mt-1 line-clamp-2">${h.detail}</div>
@@ -909,7 +882,7 @@
             
             const monthlyStats = {};
             readingHistory.forEach(h => {
-                const month = (h.date || '날짜 없음').substring(0, 7);
+                const month = h.date.substring(0, 7);
                 if (!monthlyStats[month]) monthlyStats[month] = { eng: 0, kor: 0, total: 0 };
                 monthlyStats[month].total++;
                 if (h.item === '영어 도서') monthlyStats[month].eng++;
@@ -918,10 +891,9 @@
 
             let monthlyHTML = Object.keys(monthlyStats).sort((a,b) => b.localeCompare(a)).map(m => {
                 const parts = m.split('-');
-                const label = parts.length === 2 ? `${parts[0]}년 ${parseInt(parts[1])}월` : m;
                 return `
                 <div class="bg-gray-50 rounded-xl p-3 mb-2 border border-gray-100 flex justify-between items-center">
-                    <span class="font-bold text-gray-700 text-sm">${label}</span>
+                    <span class="font-bold text-gray-700 text-sm">${parts[0]}년 ${parseInt(parts[1])}월</span>
                     <span class="text-xs font-medium text-gray-500">총 <strong class="text-indigo-600 text-sm">${monthlyStats[m].total}</strong>권 (영 ${monthlyStats[m].eng} / 한 ${monthlyStats[m].kor})</span>
                 </div>`;
             }).join('');
@@ -931,7 +903,7 @@
             let listHTML = readingHistory.map(h => `
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3 transition hover:shadow-md">
                     <div class="flex justify-between items-center mb-1">
-                        <div class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date || '날짜 없음'}</div>
+                        <div class="text-[10px] text-gray-400 font-bold tracking-wider">${h.date}</div>
                         ${h.item === '영어 도서' ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-600">영어 도서</span>' : '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-600">한글 도서</span>'}
                     </div>
                     <div class="font-bold text-gray-800 text-sm mb-1">${h.detail}</div>
@@ -1084,109 +1056,168 @@
             `;
         }
 
+        function getLearnerHTML(learnerId) {
+            const l = window.state.learners[learnerId];
+            const isSuweol = learnerId === 'suweol';
+            const myHistory = window.state.history.filter(h => h.learnerId === learnerId).slice(0, 5);
+            
+            let progressPercent = Math.min(100, Math.max(0, (l.points.totalPoints / 10) * 100));
+            
+            let engConditionHTML = '';
+            if (isSuweol) {
+                const engDone = l.points.englishBooks >= 3;
+                engConditionHTML = `
+                    <div class="mt-4 text-[11px] font-bold px-3 py-1.5 rounded-full inline-flex items-center ${engDone ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                        <i class="fa-solid fa-book-open mr-1.5"></i> 영어 도서 3권 필수 (현재 ${l.points.englishBooks}권) ${engDone ? '✅' : '❌'}
+                    </div>
+                `;
+            }
+
+            let historyHTML = '';
+            if (myHistory.length === 0) {
+                historyHTML = `<div class="text-center text-gray-400 text-sm py-6">아직 내역이 없어요.<br>열심히 포인트를 모아보세요!</div>`;
+            } else {
+                historyHTML = myHistory.map(h => {
+                    const isPos = h.points > 0 || h.amount > 0;
+                    const isNeg = h.points < 0 || h.amount < 0;
+                    const valueText = h.type === 'use' || h.type === 'coupon' 
+                        ? (h.amount > 0 ? `+${h.amount.toLocaleString()}원` : `${h.amount.toLocaleString()}원`) 
+                        : (h.points > 0 ? `+${h.points}P` : `${h.points}P`);
+                    const colorClass = isPos ? 'text-emerald-600' : (isNeg ? 'text-rose-500' : 'text-indigo-600');
+                    return `
+                    <div class="flex justify-between items-center py-3.5 border-b border-gray-100 last:border-0 transition hover:bg-gray-50 px-2 rounded-lg -mx-2">
+                        <div class="flex-1 pr-2">
+                            <div class="text-[10px] text-gray-400 font-bold tracking-wider mb-0.5">${h.date || '날짜 없음'}</div>
+                            <div class="font-bold text-gray-800 text-sm">${h.item}</div>
+                            <div class="text-[11px] text-gray-500 mt-0.5 line-clamp-1 w-48">${h.detail}</div>
+                            ${h.image ? `<div class="mt-1.5"><img src="${h.image}" onclick="window.openImageViewer('${h.image}')" class="w-10 h-10 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition shadow-sm"></div>` : ''}
+                        </div>
+                        <div class="font-black text-sm ${colorClass}">${valueText}</div>
+                    </div>
+                    `;
+                }).join('');
+            }
+
+            let noticeBannerHTML = '';
+            if (window.state.announcements && window.state.announcements.length > 0) {
+                const latestNotice = window.state.announcements[0];
+                noticeBannerHTML = `
+                    <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 p-4 rounded-2xl mb-5 shadow-sm relative overflow-hidden flex items-start">
+                        <div class="absolute -right-3 -top-3 text-yellow-200 opacity-40"><i class="fa-solid fa-bullhorn text-6xl"></i></div>
+                        <div class="bg-yellow-400 text-yellow-900 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm mr-3 flex-shrink-0 relative z-10">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                        <div class="relative z-10 flex-1">
+                            <div class="text-[10px] text-yellow-600 font-bold tracking-wider mb-0.5">부모님 알림 (${latestNotice.date || '날짜 없음'})</div>
+                            <div class="font-bold text-yellow-900 text-sm leading-relaxed whitespace-pre-wrap">${latestNotice.message}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="flex flex-col h-full bg-gray-50 fade-in w-full">
+                    <div class="bg-indigo-600 px-5 py-4 shadow-md flex items-center justify-between text-white sticky top-0 z-10 w-full">
+                        <button onclick="window.navigate('home')" class="hover:text-indigo-200 p-2 -ml-2 transition"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                        <h1 class="text-lg font-bold flex items-center">${l.name}의 지갑 <span class="ml-2 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span></h1>
+                        <div class="w-8"></div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-5 space-y-5 hide-scroll pb-10 w-full">
+                        ${noticeBannerHTML}
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden">
+                            <h2 class="text-xs font-black text-gray-400 mb-2 tracking-wider">포인트 모으기</h2>
+                            <div class="flex justify-between items-end mb-2 border-b border-gray-100 pb-3">
+                                <span class="text-3xl font-black text-gray-800">${l.points.totalPoints} <span class="text-lg text-gray-400 font-bold">/ 10 P</span></span>
+                            </div>
+                            <div class="h-3.5 w-full bg-gray-100 rounded-full overflow-hidden mt-4 shadow-inner">
+                                <div class="h-full bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all duration-700 ease-out rounded-full" style="width: ${progressPercent}%;"></div>
+                            </div>
+                            ${engConditionHTML}
+                            <div class="grid grid-cols-3 gap-3 mt-6">
+                                <div class="bg-gray-50 p-2.5 rounded-xl text-center border border-gray-100">
+                                    <div class="text-[10px] text-gray-500 font-bold mb-1">영어 도서</div>
+                                    <div class="font-black text-gray-700 text-sm">${l.points.englishBooks}권</div>
+                                </div>
+                                <div class="bg-gray-50 p-2.5 rounded-xl text-center border border-gray-100">
+                                    <div class="text-[10px] text-gray-500 font-bold mb-1">한글 도서</div>
+                                    <div class="font-black text-gray-700 text-sm">${l.points.koreanBooks}권</div>
+                                </div>
+                                <div class="bg-gray-50 p-2.5 rounded-xl text-center border border-gray-100">
+                                    <div class="text-[10px] text-gray-500 font-bold mb-1">기타 상점</div>
+                                    <div class="font-black text-gray-700 text-sm">${l.points.customPoints}P</div>
+                                </div>
+                            </div>
+                            <button onclick="window.openPointReqModal('${learnerId}')" class="mt-5 w-full bg-indigo-50 text-indigo-600 border border-indigo-100 font-bold py-3 rounded-xl hover:bg-indigo-100 transition active:scale-95 flex items-center justify-center text-sm shadow-sm">
+                                <i class="fa-solid fa-camera mr-2"></i> 독서 / 상점 신청하기
+                            </button>
+                        </div>
+                        <div class="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-700 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                            <i class="fa-solid fa-piggy-bank absolute -right-6 -bottom-6 text-8xl opacity-20 transform -rotate-12"></i>
+                            <h2 class="text-xs font-bold text-indigo-200 mb-1 tracking-wider">사용 가능한 내 돈</h2>
+                            <div class="text-3xl font-black mb-1 drop-shadow-md">${l.coupons.balance.toLocaleString()}원</div>
+                            <div class="text-xs font-medium text-indigo-200 mb-6 flex items-center bg-black/10 w-max px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur-sm">
+                                <i class="fa-solid fa-trophy mr-1.5 text-yellow-300"></i> 지금까지 모은 총 금액: <span class="ml-1.5 font-bold text-white">${(l.coupons.totalIssued * 2000).toLocaleString()}원</span>
+                            </div>
+                            <button onclick="window.openRequestModal('${learnerId}')" class="w-full bg-white text-indigo-700 font-black py-3.5 rounded-xl shadow-md hover:bg-indigo-50 transition active:scale-95 flex items-center justify-center relative z-10">
+                                <i class="fa-solid fa-hand-holding-dollar mr-2 text-lg"></i> 용돈 지급 신청하기
+                            </button>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                            <h2 class="text-xs font-black text-gray-400 mb-4 tracking-wider">최근 내역 (동기화됨)</h2>
+                            <div class="space-y-1">${historyHTML}</div>
+                            <button onclick="window.navigate('readingList', {learnerId: '${learnerId}', fromAdmin: false})" class="w-full mt-4 bg-gray-50 text-gray-600 border border-gray-200 font-bold py-3 rounded-xl hover:bg-gray-100 transition active:scale-95 flex items-center justify-center text-sm shadow-sm">
+                                <i class="fa-solid fa-book-open-reader mr-2"></i> 전체 독서 기록장 보기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         // ==========================================
         // Event Processing & Business Logic
         // ==========================================
-        window.approveRequest = async function(fbId) {
-            const req = window.state.requests.find(r => r.fbId === fbId);
-            if (!req) return;
-            
-            try {
-                const l = window.state.learners[req.learnerId];
-                const newBalance = l.coupons.balance - req.amount;
-
-                if (!isLocalMode) {
-                    await deleteDoc(doc(db, `${basePath}/moneyRequests`, fbId));
-                    await updateDoc(doc(db, `${basePath}/learners`, req.learnerId), { 'coupons.balance': newBalance });
-                    await addDoc(collection(db, `${basePath}/history`), {
-                        id: Date.now().toString(), learnerId: req.learnerId, date: new Date().toISOString().split('T')[0],
-                        type: 'use', item: '용돈 지급 완료', points: 0, amount: -req.amount, detail: '부모님 확인 후 지급', image: null
-                    });
-                } else {
-                    window.state.requests = window.state.requests.filter(r => r.fbId !== fbId);
-                    window.state.learners[req.learnerId].coupons.balance = newBalance;
-                    window.state.history.unshift({
-                        id: Date.now().toString(), fbId: Date.now().toString(), learnerId: req.learnerId, date: new Date().toISOString().split('T')[0],
-                        type: 'use', item: '용돈 지급 완료', points: 0, amount: -req.amount, detail: '부모님 확인 후 지급', image: null
-                    });
-                    triggerRender();
-                }
-                window.showModal('지급 완료', `<b>${l.name}</b>에게 ${req.amount.toLocaleString()}원 지급 처리가 완료되었습니다.`);
-            } catch(e) {
-                console.error(e);
-                window.showModal('오류', '처리 중 문제가 발생했습니다.');
-            }
-        };
-
-        window.rejectPointRequest = async function(fbId) {
-            try {
-                if (!isLocalMode) {
-                    await deleteDoc(doc(db, `${basePath}/pointRequests`, fbId));
-                } else {
-                    window.state.pointRequests = window.state.pointRequests.filter(r => r.fbId !== fbId);
-                    triggerRender();
-                }
-                window.showModal('반려 완료', '해당 상점 신청을 반려(삭제) 하였습니다.');
-            } catch(e) {
-                console.error(e);
-            }
-        };
-
         window.revertHistoryRecord = async function(fbId, learnerId) {
             const recordToDelete = window.state.history.find(r => r.fbId === fbId);
             if (!recordToDelete) return;
             
             window.showConfirm('기록 삭제', `[${recordToDelete.item}] 내역을 삭제하시겠습니까?\n관련된 포인트와 쿠폰이 처음부터 정확하게 재계산되어 복구됩니다.`, async () => {
                 try {
+                    // 삭제할 기록과 자동 생성된 쿠폰을 제외하고 사용자가 발생시킨 이벤트들만 뽑아서 과거부터 정렬
                     const userEvents = window.state.history.filter(h => 
                         h.learnerId === learnerId && 
                         h.type !== 'coupon' && 
                         h.fbId !== fbId
-                    ).sort((a, b) => String(a.id).localeCompare(String(b.id)));
+                    ).sort((a, b) => a.id.localeCompare(b.id));
 
+                    // 학습자 상태 완전히 0으로 초기화
                     const l = JSON.parse(JSON.stringify(window.state.learners[learnerId]));
                     l.points = { englishBooks: 0, koreanBooks: 0, customPoints: 0, totalPoints: 0 };
                     l.coupons = { balance: 0, totalIssued: 0 };
 
                     const newHistory = [];
 
+                    // 과거부터 순서대로 다시 이벤트를 부여하며 쿠폰 발급 여부를 재시뮬레이션
                     for (const h of userEvents) {
-                        const cleanEvent = {
-                            id: h.id || Date.now().toString(),
-                            learnerId: h.learnerId,
-                            date: h.date || new Date().toISOString().split('T')[0],
-                            type: h.type,
-                            item: h.item || '',
-                            points: h.points || 0,
-                            amount: h.amount || 0,
-                            detail: h.detail || '',
-                            image: h.image || null
-                        };
-                        newHistory.push(cleanEvent);
+                        newHistory.push(h);
                         
                         if (h.type === 'use') {
-                            l.coupons.balance += (h.amount || 0);
+                            l.coupons.balance += h.amount; // amount가 마이너스 값이므로 더하면 차감됨
                         } else if (h.type === 'merit' || h.type === 'demerit') {
-                            l.points.totalPoints += (h.points || 0);
+                            l.points.totalPoints += h.points;
                             if (h.item === '영어 도서') l.points.englishBooks += 1;
                             else if (h.item === '한글 도서') l.points.koreanBooks += 1;
-                            else if (h.type === 'merit' && h.item === '기타 활동') l.points.customPoints += (h.points || 0);
-                            else if (h.type === 'demerit') l.points.customPoints += (h.points || 0);
+                            else if (h.type === 'merit' && h.item === '기타 활동') l.points.customPoints += h.points;
+                            else if (h.type === 'demerit' && h.item === '정리') l.points.customPoints += h.points;
+                            else if (h.type === 'demerit' && h.item === '숙제 미션') l.points.customPoints += h.points;
+                            else if (h.type === 'demerit' && h.item === '기타 벌점') l.points.customPoints += h.points;
 
-                            const { newHistories } = window.calculateCoupons(l, learnerId);
+                            // 점수 누적 후 쿠폰 발급 조건을 만족했는지 체크
+                            const { updatedLearner, newHistories } = window.calculateCoupons(l, learnerId);
                             if (newHistories.length > 0) {
                                 newHistories.forEach(nh => {
-                                    newHistory.push({
-                                        id: nh.id,
-                                        learnerId: nh.learnerId,
-                                        date: nh.date,
-                                        type: nh.type,
-                                        item: nh.item,
-                                        points: nh.points || 0,
-                                        amount: nh.amount || 0,
-                                        detail: nh.detail || '',
-                                        image: null
-                                    });
+                                    nh.fbId = nh.id; 
+                                    newHistory.push(nh);
                                 });
                             }
                         }
@@ -1197,11 +1228,12 @@
                         
                         const oldHistories = window.state.history.filter(h => h.learnerId === learnerId);
                         oldHistories.forEach(h => {
-                            if (h.fbId) batch.delete(doc(db, `${basePath}/history`, h.fbId));
+                            batch.delete(doc(db, `${basePath}/history`, h.fbId));
                         });
 
                         newHistory.forEach(h => {
                             const newRef = doc(collection(db, `${basePath}/history`));
+                            h.fbId = newRef.id;
                             batch.set(newRef, h);
                         });
 
@@ -1214,10 +1246,9 @@
                         window.state.learners[learnerId] = l;
                         window.state.history = window.state.history.filter(h => h.learnerId !== learnerId);
                         newHistory.forEach(h => {
-                            h.fbId = h.id;
                             window.state.history.unshift(h);
                         });
-                        window.state.history.sort((a, b) => String(b.id).localeCompare(String(a.id)));
+                        window.state.history.sort((a, b) => b.id.localeCompare(a.id));
                         triggerRender();
                     }
 
@@ -1269,14 +1300,13 @@
                 console.error(e);
             } finally {
                 if(btnText) btnText.classList.remove('hidden');
-                if(btnLoader) btnLoader.classList.remove('hidden'); // wait, loader should hide:
                 if(btnLoader) btnLoader.classList.add('hidden');
             }
         };
 
         window.exportHistoryToCSV = function(learnerId) {
             const l = window.state.learners[learnerId];
-            const myHistory = window.state.history.filter(h => h.learnerId === learnerId).sort((a,b) => String(a.id).localeCompare(String(b.id)));
+            const myHistory = window.state.history.filter(h => h.learnerId === learnerId).sort((a,b) => a.id.localeCompare(b.id));
             if(myHistory.length === 0) { window.showModal('알림', '출력할 기록이 없습니다.'); return; }
 
             let csvContent = "\uFEFF";
@@ -1307,7 +1337,7 @@
 
         window.exportReadingListToCSV = function(learnerId) {
             const l = window.state.learners[learnerId];
-            const readingHistory = window.state.history.filter(h => h.learnerId === learnerId && h.type === 'merit' && (h.item === '영어 도서' || h.item === '한글 도서')).sort((a,b) => String(a.id).localeCompare(String(b.id)));
+            const readingHistory = window.state.history.filter(h => h.learnerId === learnerId && h.type === 'merit' && (h.item === '영어 도서' || h.item === '한글 도서')).sort((a,b) => a.id.localeCompare(b.id));
             if(readingHistory.length === 0) { window.showModal('알림', '출력할 독서 기록이 없습니다.'); return; }
 
             let csvContent = "\uFEFF";
@@ -1353,13 +1383,13 @@
                     await updateDoc(doc(db, `${basePath}/learners`, 'suna'), suna);
 
                     const histSnap = await getDocs(collection(db, `${basePath}/history`));
-                    await Promise.all(histSnap.docs.map(d => deleteDoc(doc(db, `${basePath}/history`, d.id))));
+                    histSnap.forEach(d => deleteDoc(doc(db, `${basePath}/history`, d.id)));
                     
                     const prSnap = await getDocs(collection(db, `${basePath}/pointRequests`));
-                    await Promise.all(prSnap.docs.map(d => deleteDoc(doc(db, `${basePath}/pointRequests`, d.id))));
+                    prSnap.forEach(d => deleteDoc(doc(db, `${basePath}/pointRequests`, d.id)));
                     
                     const mrSnap = await getDocs(collection(db, `${basePath}/moneyRequests`));
-                    await Promise.all(mrSnap.docs.map(d => deleteDoc(doc(db, `${basePath}/moneyRequests`, d.id))));
+                    mrSnap.forEach(d => deleteDoc(doc(db, `${basePath}/moneyRequests`, d.id)));
                 } else {
                     window.state.learners.suweol = suweol;
                     window.state.learners.suna = suna;
@@ -1389,7 +1419,7 @@
             const box = document.getElementById('pointReqBox');
             modal.classList.remove('hidden');
             setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
-        };
+        }
 
         window.handleImageUpload = function(event) {
             const file = event.target.files[0];
@@ -1440,7 +1470,7 @@
                     learnerId: learnerId,
                     category: item,
                     detail: detail,
-                    image: window.currentUploadedImageBase64 || null,
+                    image: window.currentUploadedImageBase64,
                     date: new Date().toISOString().split('T')[0]
                 };
 
@@ -1567,11 +1597,11 @@
                     pointTypeKey = 'customPoints'; logItemName = '기타 활동'; 
                 }
             } else { 
-                if (item === 'cleanup') { pointsToAdd = -1; pointTypeKey = 'customPoints'; logItemName = '정리'; }
-                else if (item === 'hw') { pointsToAdd = -2; pointTypeKey = 'customPoints'; logItemName = '숙제 미션'; }
+                if (item === 'cleanup') { pointsToAdd = -1; logItemName = '정리'; }
+                else if (item === 'hw') { pointsToAdd = -2; logItemName = '숙제 미션'; }
                 else if (item === 'custom') { 
                     if (customPointsValue <= 0) { window.showModal('입력 오류', '기타 벌점은 1 이상의 숫자를 입력하세요.'); return false; }
-                    pointsToAdd = -customPointsValue; pointTypeKey = 'customPoints'; logItemName = '기타 벌점'; 
+                    pointsToAdd = -customPointsValue; logItemName = '기타 벌점'; 
                 }
             }
 
@@ -1588,13 +1618,12 @@
             historyRecords.push({
                 id: Date.now().toString(),
                 learnerId: learnerId,
-                date: date || new Date().toISOString().split('T')[0],
+                date: date,
                 type: category,
                 item: logItemName,
                 points: pointsToAdd,
-                amount: 0,
                 detail: detail,
-                image: image || null
+                image: image
             });
 
             const { updatedLearner, newHistories, msg } = window.calculateCoupons(l, learnerId);
@@ -1694,80 +1723,18 @@
             if (issuedCount > 0) {
                 for(let i=0; i<issuedCount; i++) {
                     newHistories.push({
-                        id: Date.now().toString() + '_' + i, learnerId: learnerId, date: new Date().toISOString().split('T')[0],
-                        type: 'coupon', item: '쿠폰 발급 완료', points: 0, amount: 2000, detail: '목표 달성 자동 발급', image: null
+                        id: Date.now().toString() + i, learnerId: learnerId, date: new Date().toISOString().split('T')[0],
+                        type: 'coupon', item: '쿠폰 발급 완료', points: 0, amount: 2000, detail: '목표 달성 자동 발급'
                     });
                 }
                 if (gotSpecial) {
                      newHistories.push({
-                        id: Date.now().toString() + '_sp', learnerId: learnerId, date: new Date().toISOString().split('T')[0],
-                        type: 'coupon', item: '특별 쿠폰 발급', points: 0, amount: 2000, detail: '누적 3회 달성 보너스', image: null
+                        id: Date.now().toString() + 'sp', learnerId: learnerId, date: new Date().toISOString().split('T')[0],
+                        type: 'coupon', item: '특별 쿠폰 발급', points: 0, amount: 2000, detail: '누적 3회 달성 보너스'
                     });
                 }
             }
             return { updatedLearner: l, newHistories, msg: messages.join('<br><br>') };
-        };
-
-        // ==========================================
-        // Money Request Management (Learner Mode)
-        // ==========================================
-        window.openRequestModal = function(learnerId) {
-            document.getElementById('inputValue').value = '';
-            const modal = document.getElementById('inputModal');
-            const box = document.getElementById('inputBox');
-            
-            document.getElementById('inputConfirmBtn').onclick = () => window.submitMoneyRequest(learnerId);
-
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                box.classList.remove('scale-95');
-                box.classList.add('scale-100');
-                document.getElementById('inputValue').focus();
-            }, 10);
-        };
-
-        window.submitMoneyRequest = async function(learnerId) {
-            const val = parseInt(document.getElementById('inputValue').value);
-            if(isNaN(val) || val <= 0) {
-                window.showModal('입력 오류', '올바른 금액을 입력하세요.');
-                return;
-            }
-
-            const l = window.state.learners[learnerId];
-            if (val > l.coupons.balance) {
-                window.showModal('잔액 부족', `신청 금액이 보유 잔액(${l.coupons.balance.toLocaleString()}원)보다 많습니다.`);
-                return;
-            }
-
-            const btnText = document.getElementById('inputConfirmText');
-            const btnLoader = document.getElementById('inputConfirmLoader');
-            btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
-
-            try {
-                const reqData = {
-                    id: Date.now().toString(),
-                    learnerId: learnerId,
-                    amount: val,
-                    date: new Date().toISOString().split('T')[0]
-                };
-
-                if (!isLocalMode) {
-                    await addDoc(collection(db, `${basePath}/moneyRequests`), reqData);
-                } else {
-                    reqData.fbId = reqData.id;
-                    window.state.requests.unshift(reqData);
-                    triggerRender();
-                }
-
-                window.closeModal('inputModal');
-                setTimeout(() => window.showModal('신청 완료!', '부모님께 용돈 지급 신청을 보냈습니다.'), 300);
-            } catch(e) {
-                console.error(e);
-                window.showModal('오류', '전송 실패. 다시 시도해주세요.');
-            } finally {
-                btnText.classList.remove('hidden'); btnLoader.classList.add('hidden');
-            }
         };
 
         // ==========================================
